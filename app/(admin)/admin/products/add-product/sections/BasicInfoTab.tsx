@@ -227,21 +227,57 @@ export default function BasicInfoTab({ form, fieldRefs, onNameChange }: BasicInf
                 </FormItem>
               )}
             />
+          </div>
 
+          {/* Toggle Switches Section */}
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <FormField
               control={form.control}
               name="featured"
-              render={({ field }) => (
-                <FormItem className="mt-4 flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div>
-                    <FormLabel className="text-base">Featured Product?</FormLabel>
-                    <FormDescription>Display this product as featured</FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch checked={field.value} onCheckedChange={field.onChange} />
-                  </FormControl>
-                </FormItem>
-              )}
+              render={({ field }) => {
+                console.log("featured field value:", field.value, "Type:", typeof field.value);
+                return (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div>
+                      <FormLabel className="text-base">Featured Product?</FormLabel>
+                      <FormDescription>Display this product as featured</FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch 
+                        checked={field.value} 
+                        onCheckedChange={(val) => {
+                          console.log("featured changed to:", val);
+                          field.onChange(val);
+                        }} 
+                      />
+                    </FormControl>
+                  </FormItem>
+                );
+              }}
+            />
+
+            <FormField
+              control={form.control}
+              name="isBestCollection"
+              render={({ field }) => {
+                return (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div>
+                      <FormLabel className="text-base">Best Collection?</FormLabel>
+                      <FormDescription>Include in best collection</FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch 
+                        checked={field.value} 
+                        onCheckedChange={(val) => {
+                          console.log("isBestCollection changed to:", val);
+                          field.onChange(val);
+                        }} 
+                      />
+                    </FormControl>
+                  </FormItem>
+                );
+              }}
             />
           </div>
         </CardContent>

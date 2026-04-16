@@ -47,8 +47,6 @@ const Navbar = () => {
   const dispatch = useAppDispatch();
 
   const { data: cartData } = useGetMyCartQuery([]);
-
-  const [lastScrollY, setLastScrollY] = useState(0);
   const [cartOpen, setCartOpen] = useState(false);
 
   // Auth state
@@ -185,7 +183,7 @@ const Navbar = () => {
                                 .join(",")}`}
                               className="hover:bg-muted block rounded-md px-3 py-2 text-sm font-medium transition-colors"
                             >
-                              All {AUDIENCE_LABELS[audience]}
+                              All 
                             </Link>
 
                             {/* Loading skeleton */}
@@ -572,7 +570,7 @@ const Navbar = () => {
                                       href={`/products?audience=${audience}`}
                                       className="hover:bg-muted block rounded-md px-3 py-2 text-sm font-medium transition-colors"
                                     >
-                                      All {AUDIENCE_LABELS[audience]}
+                                      All 
                                     </Link>
                                   </li>
 

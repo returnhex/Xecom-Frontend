@@ -120,6 +120,15 @@ const productApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["product"],
     }),
+
+    //-----------------Set Featured Image-----------------
+    setProductFeaturedImage: builder.mutation({
+      query: (args: { productId: string; imageId: string }) => ({
+        url: `/product/${args.productId}/featured-image/${args.imageId}`,
+        method: "PATCH",
+      }),
+      invalidatesTags: ["product"],
+    }),
   }),
 });
 
@@ -132,4 +141,5 @@ export const {
   useDeleteProductMutation,
   useUpdateProductStatusMutation,
   useUpdateProductFeaturedMutation,
+  useSetProductFeaturedImageMutation,
 } = productApi;
