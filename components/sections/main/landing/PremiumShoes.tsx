@@ -174,10 +174,10 @@ const PremiumShoes = (): React.JSX.Element => {
         <div className="mt-10 flex justify-center">
           <Link
             href="/products"
-            className="group relative hover:text-white border-b-2 dark:hover:text-black rounded-full px-6 py-3 text-sm font-semibold"
+            className="group relative rounded-full border-b-2 px-6 py-3 text-sm font-semibold hover:text-white dark:hover:text-black"
           >
-            <span className="absolute bottom-0 left-0 h-[2px] rounded-full w-full bg-black transition-all duration-300 group-hover:h-full group-hover:border group-hover:border-black  dark:bg-white dark:group-hover:border-white"></span>
-            <span className="relative   z-10">View All Products</span>
+            <span className="absolute bottom-0 left-0 h-[2px] w-full rounded-full bg-black transition-all duration-300 group-hover:h-full group-hover:border group-hover:border-black dark:bg-white dark:group-hover:border-white"></span>
+            <span className="relative z-10">View All Products</span>
           </Link>
         </div>
       </div>

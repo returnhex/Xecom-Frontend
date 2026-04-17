@@ -81,7 +81,6 @@ export default function BestCollection() {
 
               {/* Price (fallback چون API তে নাই) */}
               <p className="text-danger mt-1 text-sm font-semibold">৳ {item.price ?? 999}</p>
-
             </Link>
           ))}
       </div>
