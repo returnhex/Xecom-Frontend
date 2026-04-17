@@ -11,6 +11,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   useGetSingleProductQuery,
   useUpdateProductMutation,
+  useSetProductFeaturedImageMutation,
 } from "@/redux/features/product/product.api";
 import { toast } from "sonner";
 import { ArrowBigLeft, ArrowBigRight, Loader2 } from "lucide-react";
@@ -37,6 +38,7 @@ const TAB_FIELDS: Record<TabName, string[]> = {
     "shortDescription",
     "fullDescription",
     "brandId",
+    "isBestCollection",
     "categoryId",
     "status",
     "featured",
@@ -107,6 +109,7 @@ export default function EditProductPage() {
   });
 
   const [updateProduct] = useUpdateProductMutation();
+  const [setProductFeaturedImage] = useSetProductFeaturedImageMutation();
 
   // ── Form setup ────────────────────────────────────────────────────────────
   const form = useForm<ProductFormData>({
@@ -154,6 +157,7 @@ export default function EditProductPage() {
       categoryId: product.categoryId ?? "",
       status: normalizeProductStatus(product.status),
       featured: product.featured ?? false,
+      isBestCollection: product.isBestCollection ?? false,
       // Images: keep existing URLs in a separate state; form gets empty array
       // (new files the user picks will be appended in onSubmit)
       images: [],
@@ -276,7 +280,6 @@ export default function EditProductPage() {
     try {
       const formData = new FormData();
 
-      // Only append NEW files (those that have a real File object)
       const newFiles = imageFiles.filter((img) => img.file instanceof File);
       newFiles.forEach(({ file }) => formData.append("images", file));
 
@@ -293,11 +296,13 @@ export default function EditProductPage() {
         categoryId: data.categoryId,
         status: data.status,
         featured: data.featured,
+        isBestCollection: data.isBestCollection,
         weight: data.weight,
         weightUnit: data.weightUnit,
         warranty: data.warranty,
         tags: data.tags,
         metaKeywords: data.metaKeywords,
+        relatedProductIds: data.relatedProductIds,
         faqs: data.faqs,
         minOrderQty: data.minOrderQty,
         maxOrderQty: data.maxOrderQty,
@@ -306,7 +311,6 @@ export default function EditProductPage() {
         dimension: data.dimensions,
         specifications: data.specifications,
         variants: data.variants,
-        // Pass existing image URLs so the backend can keep them
         existingImages: imageFiles
           .filter((img) => !(img.file instanceof File))
           .map((img) => img.url),
@@ -314,10 +318,23 @@ export default function EditProductPage() {
 
       formData.append("text", JSON.stringify(payload));
 
-      const result = await updateProduct({
-        id: productId,
-        data: formData,
-      }).unwrap();
+      const result = await updateProduct({ id: productId, data: formData }).unwrap();
+
+      if (result?.data?.id && newFiles.length > 0) {
+        try {
+          const product = result.data;
+          const existingCount = imageFiles.filter((img) => !(img.file instanceof File)).length;
+          const firstNewImage = product.images?.[existingCount];
+          if (firstNewImage?.id) {
+            await setProductFeaturedImage({
+              productId: product.id,
+              imageId: firstNewImage.id,
+            }).unwrap();
+          }
+        } catch (featuredError) {
+          console.log("Error setting featured image:", featuredError);
+        }
+      }
 
       toast.success(result?.message || "Product updated successfully ✅");
       router.push("/admin/products/all-products");

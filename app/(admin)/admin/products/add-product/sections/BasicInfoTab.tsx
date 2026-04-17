@@ -243,12 +243,12 @@ export default function BasicInfoTab({ form, fieldRefs, onNameChange }: BasicInf
                       <FormDescription>Display this product as featured</FormDescription>
                     </div>
                     <FormControl>
-                      <Switch 
-                        checked={field.value} 
+                      <Switch
+                        checked={field.value}
                         onCheckedChange={(val) => {
                           console.log("featured changed to:", val);
                           field.onChange(val);
-                        }} 
+                        }}
                       />
                     </FormControl>
                   </FormItem>
@@ -267,12 +267,12 @@ export default function BasicInfoTab({ form, fieldRefs, onNameChange }: BasicInf
                       <FormDescription>Include in best collection</FormDescription>
                     </div>
                     <FormControl>
-                      <Switch 
-                        checked={field.value} 
+                      <Switch
+                        checked={field.value}
                         onCheckedChange={(val) => {
                           console.log("isBestCollection changed to:", val);
                           field.onChange(val);
-                        }} 
+                        }}
                       />
                     </FormControl>
                   </FormItem>

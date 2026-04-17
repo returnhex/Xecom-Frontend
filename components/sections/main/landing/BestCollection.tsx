@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetAllProductsQuery } from "@/redux/features/product/product.api";
 import EmptyCard from "@/components/custom/EmptyCard";
+import { Package, Star } from "lucide-react";
 
 export default function BestCollection() {
   const { data: ProductData, isLoading } = useGetAllProductsQuery([
@@ -13,6 +14,8 @@ export default function BestCollection() {
   ]);
 
   const products = ProductData?.data || [];
+
+  console.log("Best Collection Products:", products);
 
   return (
     <section className="container">
@@ -38,14 +41,27 @@ export default function BestCollection() {
         {!isLoading &&
           products.map((item: any) => (
             <Link
-              href={`/product-details/${item._id}`}
-              key={item._id}
-              className="group bg-card-primary relative max-w-90 cursor-pointer rounded-xl border-2 p-2 text-center hover:shadow-xl lg:h-50"
+              href={`/product-details/${item.slug}`}
+              key={item.id}
+              className="group bg-card-primary relative cursor-pointer rounded-xl border-2 p-3 text-center transition hover:shadow-xl lg:h-[200px]"
             >
-              <div className="relative h-40 transition-transform duration-300 group-hover:scale-110 lg:-mt-25">
-                <Image src={item.image} alt={item.title} fill className="object-contain" />
+              {/* Image */}
+              <div className="relative h-32 transition-transform duration-300 group-hover:scale-110 lg:-mt-16">
+                {item.images?.length > 0 ? (
+                  <Image
+                    src={item.images[0]?.imageUrl}
+                    alt={item.name}
+                    fill
+                    className="object-contain"
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center">
+                    <Package className="h-6 w-6 opacity-50" />
+                  </div>
+                )}
               </div>
 
+              {/* Color dots */}
               <div className="mb-2 flex justify-center gap-1">
                 <span className="bg-danger h-2 w-2 rounded-full" />
                 <span className="bg-success-foreground h-2 w-2 rounded-full" />
@@ -53,8 +69,19 @@ export default function BestCollection() {
                 <span className="bg-success-foreground h-2 w-2 rounded-full" />
               </div>
 
-              <h4 className="text-sm font-medium">{item.title}</h4>
-              <p className="text-danger mt-1 text-sm font-semibold">{item.price}</p>
+              {/* Name */}
+              <h4 className="line-clamp-1 text-sm font-medium">{item.name}</h4>
+
+              {/* Rating */}
+              <div className="mt-1 flex items-center justify-center gap-1 text-xs">
+                <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                <span>{item.avgRating ?? 0}</span>
+                <span className="text-muted-foreground">({item.reviewCount})</span>
+              </div>
+
+              {/* Price (fallback چون API তে নাই) */}
+              <p className="text-danger mt-1 text-sm font-semibold">৳ {item.price ?? 999}</p>
+
             </Link>
           ))}
       </div>

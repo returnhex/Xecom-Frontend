@@ -177,7 +177,7 @@ const AllProductsTable = () => {
     const params = [...getPaginationParams(), ...getSortParams()];
 
     if (debouncedSearchTerm) params.push({ name: "searchTerm", value: debouncedSearchTerm });
-    
+
     // Add status filters (multiple statuses)
     status.forEach((statusValue) => {
       params.push({ name: "statuses", value: statusValue });

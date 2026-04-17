@@ -97,6 +97,7 @@ const productApi = baseApi.injectEndpoints({
         method: "PUT",
         body: args.data,
       }),
+      invalidatesTags: ["product"],
     }),
     // -------------product Metadata............
     getProductMetadata: builder.query({

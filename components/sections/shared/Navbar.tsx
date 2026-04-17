@@ -183,7 +183,7 @@ const Navbar = () => {
                                 .join(",")}`}
                               className="hover:bg-muted block rounded-md px-3 py-2 text-sm font-medium transition-colors"
                             >
-                              All 
+                              All
                             </Link>
 
                             {/* Loading skeleton */}
@@ -570,7 +570,7 @@ const Navbar = () => {
                                       href={`/products?audience=${audience}`}
                                       className="hover:bg-muted block rounded-md px-3 py-2 text-sm font-medium transition-colors"
                                     >
-                                      All 
+                                      All
                                     </Link>
                                   </li>
 

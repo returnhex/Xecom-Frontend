@@ -8,6 +8,7 @@ import { useGetAllProductsQuery } from "@/redux/features/product/product.api";
 import ProductCard from "../../shared/ProductCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import EmptyCard from "@/components/custom/EmptyCard";
+import Link from "next/link";
 
 const PremiumShoes = (): React.JSX.Element => {
   const [activeTab, setActiveTab] = useState<"trending" | "bestsellers" | "new">("trending");
@@ -143,11 +144,13 @@ const PremiumShoes = (): React.JSX.Element => {
             {activeProducts.map((product) => (
               <ProductCard
                 key={product.id}
-                product={{
-                  ...product,
-                  rating: product.avgRating ?? 0,
-                  reviews: product.reviewCount ?? 0,
-                } as any}
+                product={
+                  {
+                    ...product,
+                    rating: product.avgRating ?? 0,
+                    reviews: product.reviewCount ?? 0,
+                  } as any
+                }
                 viewMode="grid"
                 getBadgeColor={(badge?: string) => {
                   switch (badge) {
@@ -167,6 +170,16 @@ const PremiumShoes = (): React.JSX.Element => {
             ))}
           </div>
         )}
+
+        <div className="mt-10 flex justify-center">
+          <Link
+            href="/products"
+            className="group relative hover:text-white border-b-2 dark:hover:text-black rounded-full px-6 py-3 text-sm font-semibold"
+          >
+            <span className="absolute bottom-0 left-0 h-[2px] rounded-full w-full bg-black transition-all duration-300 group-hover:h-full group-hover:border group-hover:border-black  dark:bg-white dark:group-hover:border-white"></span>
+            <span className="relative   z-10">View All Products</span>
+          </Link>
+        </div>
       </div>
     </section>
   );
