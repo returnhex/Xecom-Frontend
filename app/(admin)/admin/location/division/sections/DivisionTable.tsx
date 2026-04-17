@@ -44,7 +44,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-import CustomSelect, { SelectOption } from "@/components/custom/customSelect";
+import CustomSelect, { SelectOption } from "@/components/custom/CustomSelect";
 
 import { API_URL } from "@/redux/api/baseApi";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -239,7 +239,7 @@ export default function DivisionTable({ onEdit }: DivisionTableProps) {
                         </TooltipTrigger>
                         <TooltipContent>Edit</TooltipContent>
                       </Tooltip>
-                      <Tooltip>
+                      <Tooltip> 
                         <TooltipTrigger asChild>
                           <Button
                             variant="ghost"

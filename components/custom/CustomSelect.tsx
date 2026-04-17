@@ -22,6 +22,9 @@ export interface CustomSelectProps {
   mapToOption?: (item: any) => SelectOption;
   value?: SelectOption | SelectOption[] | null;
   onChange?: (value: SelectOption | SelectOption[] | null) => void;
+  onValueChange?:
+    | ((value: string | number | Array<string | number> | null, option?: SelectOption | SelectOption[] | null) => void)
+    | undefined;
   multiSelect?: boolean;
   searchable?: boolean;
   paginated?: boolean;
@@ -40,6 +43,7 @@ export const CustomSelect = ({
   mapToOption,
   value,
   onChange,
+  onValueChange,
   multiSelect = false,
   searchable = true,
   paginated = true,
@@ -224,14 +228,21 @@ export const CustomSelect = ({
 
   const toggleOption = (opt: SelectOption) => {
     if (!multiSelect) {
-      onChange?.(isSelected(opt) ? null : opt);
+      const selected = isSelected(opt) ? null : opt;
+      onChange?.(selected);
+      onValueChange?.(selected ? selected.value : null, selected);
       setOpen(false);
       return;
     }
+
     if (isSelected(opt)) {
-      onChange?.(selectedArray.filter((s) => s.value !== opt.value));
+      const updated = selectedArray.filter((s) => s.value !== opt.value);
+      onChange?.(updated);
+      onValueChange?.(updated.map((item) => item.value), updated);
     } else {
-      onChange?.([...selectedArray, opt]);
+      const updated = [...selectedArray, opt];
+      onChange?.(updated);
+      onValueChange?.(updated.map((item) => item.value), updated);
     }
   };
 
@@ -239,9 +250,12 @@ export const CustomSelect = ({
     e.stopPropagation();
     if (!multiSelect) {
       onChange?.(null);
+      onValueChange?.(null, null);
       return;
     }
-    onChange?.(selectedArray.filter((s) => s.value !== opt.value));
+    const updated = selectedArray.filter((s) => s.value !== opt.value);
+    onChange?.(updated);
+    onValueChange?.(updated.map((item) => item.value), updated);
   };
 
   // ── Close on outside click ─────────────────────────────────────────────────
@@ -416,7 +430,10 @@ export const CustomSelect = ({
               <span>{selectedArray.length} selected</span>
               <button
                 type="button"
-                onClick={() => onChange?.([])}
+                onClick={() => {
+                  onChange?.([]);
+                  onValueChange?.([], []);
+                }}
                 className="hover:text-destructive transition-colors"
               >
                 Clear all

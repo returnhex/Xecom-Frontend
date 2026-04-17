@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Image from "next/image";
 
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+
 import { useGetMyOrdersQuery, useCancelOrderMutation } from "@/redux/features/order/order.api";
 
 import {
@@ -22,7 +24,7 @@ import { Button } from "@/components/ui/button";
 import { TablePagination } from "@/components/custom/TablePagination";
 import { useTablePagination } from "@/hooks/useTablePagination";
 import { toast } from "sonner";
-import { Trash2, Folder } from "lucide-react";
+import { Trash2, Folder, Ban, XCircle, X } from "lucide-react";
 
 import {
   AlertDialog,
@@ -34,10 +36,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 export default function OrderTable({ onEdit }) {
   // cancel mutation
   const [cancelOrder, { isLoading: isCancelling }] = useCancelOrderMutation();
+
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<any>(null);
+
+  const handleOpenDetails = (order: any) => {
+    setSelectedItem(order);
+    setDetailsOpen(true);
+  };
 
   // pagination
   const { handlePageChange, handlePageSizeChange, getPaginationParams } = useTablePagination({
@@ -54,6 +65,8 @@ export default function OrderTable({ onEdit }) {
 
   const orders = data?.data || [];
   const hasNoData = orders.length === 0 && !isLoading;
+
+  console.log("orderee:", orders);
 
   // open dialog
   const handleCancelClick = (order: any) => {
@@ -111,7 +124,10 @@ export default function OrderTable({ onEdit }) {
                   {/* Image */}
                   <TableCell>
                     {order.orderItems?.[0]?.product?.images?.[0]?.imageUrl ? (
-                      <div className="bg-muted relative h-10 w-10 overflow-hidden rounded-md">
+                      <div
+                        onClick={() => handleOpenDetails(order)}
+                        className="bg-muted relative h-10 w-10 cursor-pointer overflow-hidden rounded-md transition hover:opacity-80"
+                      >
                         <Image
                           src={order.orderItems[0].product.images[0].imageUrl}
                           alt="product"
@@ -163,17 +179,22 @@ export default function OrderTable({ onEdit }) {
                   <TableCell>
                     <div className="flex justify-end">
                       {order.status === "PENDING" ? (
-                        <Button
-                          size="sm"
-                          onClick={() => handleCancelClick(order)}
-                          disabled={isCancelling}
-                          className="bg-green-600 text-white hover:bg-green-700"
-                        >
-                          Cancel
-                        </Button>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              size="sm"
+                              onClick={() => handleCancelClick(order)}
+                              disabled={isCancelling}
+                              className="bg-green-600 text-white hover:bg-green-700"
+                            >
+                              <X size={20} />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Cencel</TooltipContent>
+                        </Tooltip>
                       ) : (
-                        <Badge className="border border-red-200 bg-red-100 text-red-600">
-                          Not Allowed
+                        <Badge className="hidden border border-red-200 bg-red-100 text-red-600">
+                          Not allowed
                         </Badge>
                       )}
                     </div>
@@ -219,6 +240,76 @@ export default function OrderTable({ onEdit }) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
+        <DialogContent className="max-w-2xl overflow-hidden p-0">
+          {/* Header */}
+          <div className="bg-muted/40 border-b px-6 py-4">
+            <DialogTitle className="text-lg font-semibold">Order Item Details</DialogTitle>
+            <p className="text-muted-foreground text-xs">Product & order summary information</p>
+          </div>
+
+          <div className="space-y-6 p-6">
+            {selectedItem?.orderItems?.map((item: any) => (
+              <div key={item.id} className="space-y-4 rounded-lg border bg-white p-4 shadow-sm">
+                {/* Top Section */}
+                <div className="flex gap-4">
+                  {/* Image */}
+                  <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-md border">
+                    <Image
+                      src={item.product?.images?.[0]?.imageUrl}
+                      alt={item.product?.name}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+
+                  {/* Info */}
+                  <div className="flex-1 space-y-1">
+                    <h2 className="text-base leading-tight font-semibold">{item.product?.name}</h2>
+
+                    <p className="text-muted-foreground line-clamp-2 text-xs">
+                      {item.product?.shortDescription}
+                    </p>
+
+                    {item.variant && (
+                      <span className="mt-1 inline-block rounded-full bg-black px-2 py-0.5 text-[11px] text-white">
+                        {item.variant?.sku}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Divider */}
+                <div className="border-t" />
+
+                {/* Grid Info */}
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="bg-muted rounded-md p-3">
+                    <p className="text-muted-foreground text-xs">Price</p>
+                    <p className="font-semibold">${Number(item.unitPrice).toFixed(2)}</p>
+                  </div>
+
+                  <div className="bg-muted rounded-md p-3">
+                    <p className="text-muted-foreground text-xs">Quantity</p>
+                    <p className="font-semibold">{item.quantity}</p>
+                  </div>
+
+                  <div className="bg-muted rounded-md p-3">
+                    <p className="text-muted-foreground text-xs">Total</p>
+                    <p className="font-semibold">${Number(item.totalPrice).toFixed(2)}</p>
+                  </div>
+
+                  <div className="bg-muted rounded-md p-3">
+                    <p className="text-muted-foreground text-xs">Order No</p>
+                    <p className="truncate font-semibold">{selectedItem?.orderNumber}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

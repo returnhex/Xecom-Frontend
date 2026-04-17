@@ -6,11 +6,12 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { API_URL } from "@/redux/api/baseApi";
 import CustomSelect, { SelectOption } from "@/components/custom/CustomSelect";
+import { type CheckoutFormData } from "@/lib/shepping.Schema";
 
 interface ShippingInfoProps {
   street: string;
   postalCode: string;
-  onLocationChange: (data: { thanaId: string; street: string; postalCode: string }) => void;
+  onLocationChange: (data: CheckoutFormData) => void;
   setTouched: React.Dispatch<any>;
   errors?: {
     thanaId?: string;
@@ -67,14 +68,11 @@ const ShippingInfo = ({
     notify({ thanaId: "" });
   };
 
-  const handleThanaChange = (vals: SelectOption[] | null) => {
-    const safeVals = vals ?? [];
+  const handleThanaChange = (vals: SelectOption | SelectOption[] | null) => {
+    const safeVals = Array.isArray(vals) ? vals : (vals ? [vals] : []);
+    console.log("handleThanaChange called with:", safeVals);
     setSelectedThana(safeVals);
-
-    const newThanaId = String(safeVals[0]?.value ?? "");
-
-    notify({ thanaId: newThanaId });
-
+    notify({ thanaId: String(safeVals[0]?.value ?? "") });
     setTouched((prev: any) => ({ ...prev, thanaId: true }));
   };
 

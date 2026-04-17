@@ -146,6 +146,7 @@ const CheckoutPage = () => {
 
   // Called by ShippingInfo whenever any location field changes
   const handleLocationChange = (data: CheckoutFormData) => {
+    console.log("handleLocationChange called with:", data);
     setFormData(data);
 
     const validation = checkoutSchema.safeParse(data);
@@ -220,12 +221,17 @@ const CheckoutPage = () => {
   const handlePlaceOrder = async () => {
     if (!formValid) return;
 
+    console.log("Placing order with payload:", {
+      thanaId: formData.thanaId,
+      street: formData.street,
+      postalCode: formData.postalCode ? Number(formData.postalCode) : undefined,
+    });
+
     try {
       await createOrder({
         thanaId: formData.thanaId,
         street: formData.street,
-        postalCode: formData.postalCode || undefined,
-        couponCode: appliedPromoCode || undefined,
+        postalCode: formData.postalCode ? Number(formData.postalCode) : undefined,
       }).unwrap();
 
       setCompletedSteps((prev) => new Set(prev).add("info"));

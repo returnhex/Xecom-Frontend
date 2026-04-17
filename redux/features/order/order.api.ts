@@ -20,7 +20,7 @@ const orderApi = baseApi.injectEndpoints({
           url: "/order",
           method: "GET",
           params: params,
-        };
+        }; 
       },
       providesTags: ["order"],
       transformResponse: (response: TResponseRedux<TOrder[]>) => {
