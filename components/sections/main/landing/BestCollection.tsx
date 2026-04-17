@@ -21,7 +21,7 @@ export default function BestCollection() {
     <section className="container">
       <SectionTitle subtitle="Featured Products" title="Our Best Collection" />
 
-      <div className="grid grid-cols-2 gap-2 md:grid-cols-4 lg:mt-30 lg:grid-cols-6 lg:gap-4">
+      <div className="grid grid-cols-2 gap-2 md:grid-cols-4 lg:mt-30 lg:grid-cols-5 lg:space-y-15 lg:gap-4">
         {/*  Skeleton Loading */}
         {isLoading &&
           Array.from({ length: 12 }).map((_, index) => (
@@ -41,12 +41,12 @@ export default function BestCollection() {
         {!isLoading &&
           products.map((item: any) => (
             <Link
-              href={`/product-details/${item.slug}`}
+              href={`/product/${item.id}`}
               key={item.id}
-              className="group bg-card-primary relative cursor-pointer rounded-xl border-2 p-3 text-center transition hover:shadow-xl lg:h-[200px]"
+              className="group dark:shadow-2xl shadow-lg relative cursor-pointer rounded-xl border-2 p-3 text-center transition hover:shadow-xl lg:h-[250px]"
             >
               {/* Image */}
-              <div className="relative h-32 transition-transform duration-300 group-hover:scale-110 lg:-mt-16">
+              <div className="relative h-30 lg:h-52 transition-transform duration-300 group-hover:scale-110 lg:-mt-25">
                 {item.images?.length > 0 ? (
                   <Image
                     src={item.images[0]?.imageUrl}
@@ -61,26 +61,21 @@ export default function BestCollection() {
                 )}
               </div>
 
-              {/* Color dots */}
-              <div className="mb-2 flex justify-center gap-1">
-                <span className="bg-danger h-2 w-2 rounded-full" />
-                <span className="bg-success-foreground h-2 w-2 rounded-full" />
-                <span className="bg-rating h-2 w-2 rounded-full" />
-                <span className="bg-success-foreground h-2 w-2 rounded-full" />
-              </div>
+            
 
               {/* Name */}
-              <h4 className="line-clamp-1 text-sm font-medium">{item.name}</h4>
+              <h4 className="line-clamp-1 text-sm lg:text-xl font-medium">{item.name}</h4>
+              <p className="line-clamp-1 text-sm font-medium ">{item.shortDescription}</p>
 
               {/* Rating */}
-              <div className="mt-1 flex items-center justify-center gap-1 text-xs">
-                <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+             <div className="flex items-center mt-5 justify-evenly">
+               <div className="mt-1 flex items-center justify-center gap-1 text-xs lg:text-sm">
+                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                 <span>{item.avgRating ?? 0}</span>
                 <span className="text-muted-foreground">({item.reviewCount})</span>
               </div>
-
-              {/* Price (fallback چون API তে নাই) */}
-              <p className="text-danger mt-1 text-sm font-semibold">৳ {item.price ?? 999}</p>
+              <p className="text-danger  mt-1 text-sm lg:text-lg font-semibold">৳ {item.price ?? 999}</p>
+             </div>
             </Link>
           ))}
       </div>

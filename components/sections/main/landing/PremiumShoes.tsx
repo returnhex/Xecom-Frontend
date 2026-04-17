@@ -96,7 +96,7 @@ const PremiumShoes = (): React.JSX.Element => {
     <section ref={sectionRef} className="container">
       <div className="relative z-10">
         {/* Header */}
-        <div className="mb-12 text-center">
+        <div className="text-center">
           <SectionTitle subtitle="Sneaker" title="Premium Footwear Collection" className="mb-2" />
         </div>
         {/* Tabs */}
@@ -140,7 +140,7 @@ const PremiumShoes = (): React.JSX.Element => {
         {activeProducts.length === 0 ? (
           <EmptyCard></EmptyCard>
         ) : (
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-3 lg:grid-cols-5">
+          <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-5">
             {activeProducts.map((product) => (
               <ProductCard
                 key={product.id}
