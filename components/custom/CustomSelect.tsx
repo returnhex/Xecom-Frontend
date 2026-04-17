@@ -17,6 +17,7 @@ export interface CustomSelectProps {
     pageSize: number;
     fields?: string[];
   }) => Promise<{ data: SelectOption[]; hasMore: boolean; meta?: any }>;
+  options?: SelectOption[]; // ← NEW: for static options
   fields?: string[];
   extraParams?: Record<string, string | number>; // ← NEW
   mapToOption?: (item: any) => SelectOption;
@@ -38,6 +39,7 @@ export interface CustomSelectProps {
 export const CustomSelect = ({
   endpoint,
   fetchOptions,
+  options: staticOptions, // ← NEW
   fields,
   extraParams = {}, // ← NEW
   mapToOption,
@@ -160,10 +162,12 @@ export const CustomSelect = ({
   useEffect(() => {
     if (open) {
       setSearchTerm("");
-      loadRef.current("", 1, true);
+      if (!staticOptions) { // ← NEW: only load if not static
+        loadRef.current("", 1, true);
+      }
       if (searchable) setTimeout(() => searchRef.current?.focus(), 50);
     }
-  }, [open, searchable]);
+  }, [open, searchable, staticOptions]); // ← added staticOptions
 
   // endpoint পরিবর্তন হলে reset + re-fetch
   const prevEndpointRef = useRef<string | undefined>(undefined);
@@ -197,8 +201,20 @@ export const CustomSelect = ({
     setSearchTerm("");
     loadingRef.current = false;
 
-    loadRef.current("", 1, true);
-  }, [extraParamsKey]);
+    if (!staticOptions) { // ← NEW
+      loadRef.current("", 1, true);
+    }
+  }, [extraParamsKey, staticOptions]); // ← added staticOptions
+
+  // ← NEW: staticOptions পরিবর্তন হলে set options
+  useEffect(() => {
+    if (staticOptions) {
+      setOptions(staticOptions);
+      setHasMore(false);
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  }, [staticOptions]);
 
   // ── Debounced search ───────────────────────────────────────────────────────
 

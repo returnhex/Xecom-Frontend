@@ -1,12 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MapPin } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { API_URL } from "@/redux/api/baseApi";
 import CustomSelect, { SelectOption } from "@/components/custom/CustomSelect";
 import { type CheckoutFormData } from "@/lib/shepping.Schema";
+import { useGetAllCountriesQuery } from "@/redux/features/location/country.api";
+import { useGetAllDivisonQuery } from "@/redux/features/location/division.api";
+import { useGetAllDistrictQuery } from "@/redux/features/location/district.api";
+import { useGetAllThanasQuery } from "@/redux/features/location/thana.api";
 
 interface ShippingInfoProps {
   street: string;
@@ -27,52 +30,75 @@ const ShippingInfo = ({
   setTouched,
   errors = {},
 }: ShippingInfoProps) => {
-  const [selectedCountry, setSelectedCountry] = useState<SelectOption[]>([]);
-  const [selectedDivision, setSelectedDivision] = useState<SelectOption[]>([]);
-  const [selectedDistrict, setSelectedDistrict] = useState<SelectOption[]>([]);
-  const [selectedThana, setSelectedThana] = useState<SelectOption[]>([]);
+  const [selectedCountry, setSelectedCountry] = useState<SelectOption | null>(null);
+  const [selectedDivision, setSelectedDivision] = useState<SelectOption | null>(null);
+  const [selectedDistrict, setSelectedDistrict] = useState<SelectOption | null>(null);
+  const [selectedThana, setSelectedThana] = useState<SelectOption | null>(null);
 
-  const countryId = selectedCountry[0]?.value ?? "";
-  const divisionId = selectedDivision[0]?.value ?? "";
-  const districtId = selectedDistrict[0]?.value ?? "";
+  const countryId = selectedCountry?.value ?? "";
+  const divisionId = selectedDivision?.value ?? "";
+  const districtId = selectedDistrict?.value ?? "";
+
+  // Fetch all data
+  const { data: countriesData } = useGetAllCountriesQuery([]);
+  const { data: divisionsData } = useGetAllDivisonQuery([]);
+  const { data: districtsData } = useGetAllDistrictQuery([]);
+  const { data: thanasData } = useGetAllThanasQuery([]);
+
+  // Filter data
+  const countries = countriesData?.data || [];
+  const divisions = divisionsData?.data?.filter(d => !countryId || d.countryId === countryId) || [];
+  const districts = districtsData?.data?.filter(d => !divisionId || d.divisionId === divisionId) || [];
+  const thanas = thanasData?.data?.filter(t => !districtId || t.districtId === districtId) || [];
+
+  useEffect(() => {
+    console.log("ShippingInfo debug:", {
+      countryId,
+      divisionId,
+      districtId,
+      countries: countries.length,
+      divisions: divisions.length,
+      districts: districts.length,
+      thanas: thanas.length,
+    });
+  }, [countryId, divisionId, districtId, countries.length, divisions.length, districts.length, thanas.length]);
 
   const notify = (overrides?: { thanaId?: string; street?: string; postalCode?: string }) => {
     onLocationChange({
-      thanaId: overrides?.thanaId ?? String(selectedThana[0]?.value ?? ""),
+      thanaId: overrides?.thanaId ?? String(selectedThana?.value ?? ""),
       street: overrides?.street ?? street,
       postalCode: overrides?.postalCode ?? postalCode,
     });
   };
 
-  const handleCountryChange = (vals: SelectOption[] | null) => {
-    const safeVals = vals ?? [];
-    setSelectedCountry(safeVals);
-    setSelectedDivision([]);
-    setSelectedDistrict([]);
-    setSelectedThana([]);
+  const handleCountryChange = (val: SelectOption | null) => {
+    console.log("Country selected:", val);
+    setSelectedCountry(val);
+    setSelectedDivision(null);
+    setSelectedDistrict(null);
+    setSelectedThana(null);
     notify({ thanaId: "" });
   };
 
-  const handleDivisionChange = (vals: SelectOption[] | null) => {
-    const safeVals = vals ?? [];
-    setSelectedDivision(safeVals);
-    setSelectedDistrict([]);
-    setSelectedThana([]);
+  const handleDivisionChange = (val: SelectOption | null) => {
+    console.log("Division selected:", val);
+    setSelectedDivision(val);
+    setSelectedDistrict(null);
+    setSelectedThana(null);
     notify({ thanaId: "" });
   };
 
-  const handleDistrictChange = (vals: SelectOption[] | null) => {
-    const safeVals = vals ?? [];
-    setSelectedDistrict(safeVals);
-    setSelectedThana([]);
+  const handleDistrictChange = (val: SelectOption | null) => {
+    console.log("District selected:", val);
+    setSelectedDistrict(val);
+    setSelectedThana(null);
     notify({ thanaId: "" });
   };
 
-  const handleThanaChange = (vals: SelectOption | SelectOption[] | null) => {
-    const safeVals = Array.isArray(vals) ? vals : (vals ? [vals] : []);
-    console.log("handleThanaChange called with:", safeVals);
-    setSelectedThana(safeVals);
-    notify({ thanaId: String(safeVals[0]?.value ?? "") });
+  const handleThanaChange = (val: SelectOption | null) => {
+    console.log("Thana selected:", val);
+    setSelectedThana(val);
+    notify({ thanaId: String(val?.value ?? "") });
     setTouched((prev: any) => ({ ...prev, thanaId: true }));
   };
 
@@ -97,12 +123,7 @@ const ShippingInfo = ({
         <div>
           <Label>Country</Label>
           <CustomSelect
-            endpoint={`${API_URL}/country`}
-            fields={["id", "name"]}
-            mapToOption={(item) => ({
-              value: String(item.id),
-              label: item.name,
-            })}
+            options={countries.map(item => ({ value: String(item.id), label: item.name }))}
             value={selectedCountry}
             onChange={handleCountryChange}
             searchable
@@ -114,13 +135,7 @@ const ShippingInfo = ({
           <Label>Division</Label>
           <CustomSelect
             key={`division-${countryId}`}
-            endpoint={`${API_URL}/division`}
-            fields={["id", "name"]}
-            extraParams={countryId ? { countryId } : {}}
-            mapToOption={(item) => ({
-              value: String(item.id),
-              label: item.name,
-            })}
+            options={divisions.map(item => ({ value: String(item.id), label: item.name }))}
             value={selectedDivision}
             onChange={handleDivisionChange}
             searchable
@@ -132,13 +147,7 @@ const ShippingInfo = ({
           <Label>District</Label>
           <CustomSelect
             key={`district-${divisionId}`}
-            endpoint={`${API_URL}/district`}
-            fields={["id", "name"]}
-            extraParams={divisionId ? { divisionId } : {}}
-            mapToOption={(item) => ({
-              value: String(item.id),
-              label: item.name,
-            })}
+            options={districts.map(item => ({ value: String(item.id), label: item.name }))}
             value={selectedDistrict}
             onChange={handleDistrictChange}
             searchable
@@ -150,13 +159,7 @@ const ShippingInfo = ({
           <Label>Thana *</Label>
           <CustomSelect
             key={`thana-${districtId}`}
-            endpoint={`${API_URL}/thana`}
-            fields={["id", "name"]}
-            extraParams={districtId ? { districtId } : {}}
-            mapToOption={(item) => ({
-              value: String(item.id),
-              label: item.name,
-            })}
+            options={thanas.map(item => ({ value: String(item.id), label: item.name }))}
             value={selectedThana}
             onChange={handleThanaChange}
             searchable
