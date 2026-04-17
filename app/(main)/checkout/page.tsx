@@ -39,6 +39,7 @@ import {
 import Link from "next/link";
 import ShippingInfo from "./sections/ShippingInfo";
 import { useCreateOrderMutation } from "@/redux/features/order/order.api";
+import ProtectedRoute from "@/route/ProtectedRoute";
 
 interface Voucher {
   id: string;
@@ -251,7 +252,8 @@ const CheckoutPage = () => {
   };
 
   return (
-    <div className="cart-bg min-h-screen py-8">
+    <ProtectedRoute>
+      <div className="cart-bg min-h-screen py-8">
       <div className="mx-auto">
         <div className="mx-auto w-11/12 justify-center gap-3 px-4 lg:flex">
           {/* Left Column */}
@@ -704,6 +706,7 @@ const CheckoutPage = () => {
         </div>
       </div>
     </div>
+    </ProtectedRoute>
   );
 };
 

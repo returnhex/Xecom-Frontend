@@ -58,7 +58,7 @@ const productApi = baseApi.injectEndpoints({
         return {
           data: normalizeProduct(response.data),
         };
-      },
+      }, 
     }),
 
     //-----------------Add Product-----------------

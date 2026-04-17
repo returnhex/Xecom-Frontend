@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
@@ -41,6 +42,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 export default function OrderTable({ onEdit }) {
   // cancel mutation
   const [cancelOrder, { isLoading: isCancelling }] = useCancelOrderMutation();
+
+  const router = useRouter();
 
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<any>(null);
@@ -101,7 +104,7 @@ export default function OrderTable({ onEdit }) {
           <TableHeader>
             <TableRow>
               <TableHead className="w-20">Image</TableHead>
-              <TableHead>Order No</TableHead>
+              <TableHead>Product Name</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Payment</TableHead>
               <TableHead>Total</TableHead>
@@ -125,7 +128,7 @@ export default function OrderTable({ onEdit }) {
                   <TableCell>
                     {order.orderItems?.[0]?.product?.images?.[0]?.imageUrl ? (
                       <div
-                        onClick={() => handleOpenDetails(order)}
+                        onClick={() => router.push(`/product/${order.orderItems[0].product.id}`)}
                         className="bg-muted relative h-10 w-10 cursor-pointer overflow-hidden rounded-md transition hover:opacity-80"
                       >
                         <Image
@@ -142,8 +145,8 @@ export default function OrderTable({ onEdit }) {
                     )}
                   </TableCell>
 
-                  {/* Order Number */}
-                  <TableCell className="font-medium">{order.orderNumber}</TableCell>
+                  {/* Product Name */}
+                  <TableCell className="font-medium">{order.orderItems?.[0]?.product?.name || 'N/A'}</TableCell>
 
                   {/* Status */}
                   <TableCell>

@@ -18,8 +18,11 @@ import {
 import ProductSugation from "./sections/ProductSuggestion";
 import ProductReviews from "./sections/ProductReview";
 import { useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useGetSingleProductQuery } from "@/redux/features/product/product.api";
 import { useAddToCartMutation } from "@/redux/features/order/cart.api";
+import { useAppSelector } from "@/redux/hooks";
+import { selectCurrentUser } from "@/redux/features/auth/authSlice";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -40,6 +43,8 @@ import { UserRole } from "@/constants/enum";
 export default function ProductDetails() {
   const params = useParams();
   const id = params.id as string;
+  const router = useRouter();
+  const user = useAppSelector(selectCurrentUser);
 
   const { data: apiResponse, isLoading } = useGetSingleProductQuery(id);
   const product = apiResponse?.data;
@@ -113,6 +118,11 @@ export default function ProductDetails() {
   }
 
   const handleAddToCart = async () => {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
     if (!selectedVariant?.id) {
       toast.error("Please select a variant");
       return;
@@ -130,6 +140,15 @@ export default function ProductDetails() {
     } catch (error: any) {
       // console.error("Cart error full:", error);
     }
+  };
+
+  const handleBuyNow = () => {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+    // Implement buy now logic, e.g., add to cart and redirect to checkout
+    toast.info("Buy Now feature coming soon!");
   };
 
   // Derived data from API response
@@ -793,7 +812,7 @@ export default function ProductDetails() {
             );
           })}
 
-          {/* Actions */}
+          {/* Actions */} 
           <div className="mb-6">
             <div className="flex w-full flex-col gap-4 md:flex-row">
               <button
@@ -817,7 +836,7 @@ export default function ProductDetails() {
               </button>
 
               <button
-                // onClick={handleBuyNow}
+                onClick={handleBuyNow}
                 disabled={isAddingToCart || stockQty === 0}
                 className="hover:bg-muted h-12 w-full cursor-pointer rounded-lg border-2 border-black px-6 font-semibold transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 md:w-auto"
               >
