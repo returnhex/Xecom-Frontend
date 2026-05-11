@@ -23,7 +23,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TabsContent } from "@/components/ui/tabs";
-import CustomSelect, { SelectOption } from "@/components/custom/customSelect";
+import CustomSelect, { SelectOption } from "@/components/custom/CustomSelect";
 import { API_URL } from "@/redux/api/baseApi";
 
 interface BasicInfoTabProps {

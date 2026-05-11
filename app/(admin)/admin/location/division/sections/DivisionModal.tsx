@@ -25,7 +25,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import CustomSelect, { SelectOption } from "@/components/custom/customSelect";
+import CustomSelect, { SelectOption } from "@/components/custom/CustomSelect";
 
 interface Props {
   open: boolean;

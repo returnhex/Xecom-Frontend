@@ -25,7 +25,7 @@ import { Loader2, Eye, EyeOff } from "lucide-react";
 import { useRegisterAdminMutation } from "@/redux/features/user/admin.api";
 import { TRegisterAdminDto } from "@/redux/features/user/dto/admin.dto";
 
-import CustomSelect, { SelectOption } from "@/components/custom/customSelect";
+import CustomSelect, { SelectOption } from "@/components/custom/CustomSelect";
 import { API_URL } from "@/redux/api/baseApi";
 
 export default function AddAdminForm() {

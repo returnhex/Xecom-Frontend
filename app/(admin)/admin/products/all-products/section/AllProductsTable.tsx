@@ -1,4 +1,4 @@
-import CustomSelect, { SelectOption } from "@/components/custom/customSelect";
+import CustomSelect, { SelectOption } from "@/components/custom/CustomSelect";
 import { SortableTableHead } from "@/components/custom/SortableTableHead";
 import { TablePagination } from "@/components/custom/TablePagination";
 import { Input } from "@/components/ui/input";
