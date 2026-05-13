@@ -17,3 +17,10 @@ export type TUserMetadata = {
   totalInactiveUsers: number;
   totalVerifiedAccounts: number;
 };
+
+export type TUpdateUserDto = {
+  name?: string;
+  email?: string;
+  phoneNumber?: string;
+  profilePicture?: File | string;
+};
