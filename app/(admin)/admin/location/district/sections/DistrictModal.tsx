@@ -130,11 +130,11 @@ export default function DistrictModal({ open, onOpenChange, district }: Props) {
             <Label>Country</Label>
             <CustomSelect
               endpoint={`${API_URL}/country`}
-              fields={["id", "name"]}
               mapToOption={(item) => ({ value: item.id, label: item.name })}
               value={selectedCountry}
               onChange={(vals) => {
-                setSelectedCountry(vals as SelectOption[]);
+                const selected = vals ? (Array.isArray(vals) ? vals : [vals]) : [];
+                setSelectedCountry(selected);
                 setSelectedDivision([]);
                 setValue("divisionId", "");
               }}
@@ -149,19 +149,25 @@ export default function DistrictModal({ open, onOpenChange, district }: Props) {
             <Label>Division *</Label>
             <CustomSelect
               endpoint={`${API_URL}/division`}
-              fields={["id", "name"]}
+              extraParams={
+                selectedCountry[0]?.value
+                  ? { countryId: String(selectedCountry[0].value) }
+                  : {}
+              }
               mapToOption={(item) => ({
                 value: String(item.id),
                 label: item.name,
               })}
               value={selectedDivision}
               onChange={(vals) => {
-                setSelectedDivision(vals as SelectOption[]);
-                setValue("divisionId", String((vals as SelectOption[])[0]?.value ?? ""));
+                const selected = vals ? (Array.isArray(vals) ? vals : [vals]) : [];
+                setSelectedDivision(selected);
+                setValue("divisionId", String(selected[0]?.value ?? ""));
               }}
               searchable
               paginated
               placeholder="Select Division"
+              disabled={!selectedCountry[0]?.value}
             />
             {errors.divisionId && (
               <p className="text-destructive text-sm">{errors.divisionId.message}</p>

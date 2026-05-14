@@ -96,7 +96,7 @@ export default function ProductCard({ product, viewMode, getBadgeColor }: Props)
           >
             {/* Badge */}
             <div
-              className={`absolute top-2 lg:top-4 left-2 lg:left-4 z-10 rounded-full px-3 px-1 py-1 text-xs font-semibold lg:font-bold text-black ${getBadgeColor(badge)}`}
+              className={`absolute top-2 left-2 z-10 rounded-full px-1 px-3 py-1 text-xs font-semibold text-black lg:top-4 lg:left-4 lg:font-bold ${getBadgeColor(badge)}`}
             >
               {product.tags?.[0] ?? "—"}
             </div>
@@ -130,7 +130,7 @@ export default function ProductCard({ product, viewMode, getBadgeColor }: Props)
 
             {/* Image */}
             <div
-              className={`relative block ${viewMode === "list" ? "md:w-64" : "lg:h-64 h-35"} img-primary-bg overflow-hidden`}
+              className={`relative block ${viewMode === "list" ? "md:w-64" : "h-35 lg:h-64"} img-primary-bg overflow-hidden`}
             >
               <Image
                 src={primaryImage}

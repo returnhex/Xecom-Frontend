@@ -2,13 +2,22 @@
 
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
-import { useGetMeQuery, useUpdateMeMutation } from "@/redux/features/user/user.api";
+import {
+  useGetMeQuery, useUpdateMeMutation,
+} from "@/redux/features/user/user.api";
 import { TAdmin, TCustomer, TStaff } from "@/types";
+import ProfileInfoSection from "./sections/ProfileInfoSection";
+import AddressSection from "./sections/AddressSection";
 
 interface ProfileFormData {
   name: string;
   phoneNumber: string;
   email: string;
+
+  country: string;
+  division: string;
+  district: string;
+  thana: string;
 }
 
 export default function ProfilePage() {
@@ -24,16 +33,19 @@ export default function ProfilePage() {
     name: "",
     phoneNumber: "",
     email: "",
+
+    country: "",
+    division: "",
+    district: "",
+    thana: "",
   });
 
-
   const { data: userData, isLoading: fetchLoading, error: fetchError } = useGetMeQuery(undefined);
-
 
   useEffect(() => {
     if (!userData?.data) {
       if (fetchError) {
-        console.error("Failed to fetch user data:", fetchError);
+        console.log("Failed to fetch user data:", fetchError);
       }
       return;
     }
@@ -46,7 +58,6 @@ export default function ProfilePage() {
       return;
     }
 
-  
     const name = userData_.name || "";
     const phoneNumber = userData_.phoneNumber || "";
     const email = userData_.email || "";
@@ -59,10 +70,20 @@ export default function ProfilePage() {
       profilePicture,
     });
 
+    const country = userData_.country || "";
+    const division = userData_.division || "";
+    const district = userData_.district || "";
+    const thana = userData_.thana || "";
+
     setFormData({
       name,
       phoneNumber,
       email,
+
+      country,
+      division,
+      district,
+      thana,
     });
 
     if (profilePicture) {
@@ -92,14 +113,37 @@ export default function ProfilePage() {
     setErrorMsg("");
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    setFormData((prev) => {
+      const updated = { ...prev, [name]: value };
+
+      // reset child dropdowns
+      if (name === "country") {
+        updated.division = "";
+        updated.district = "";
+        updated.thana = "";
+      }
+
+      if (name === "division") {
+        updated.district = "";
+        updated.thana = "";
+      }
+
+      if (name === "district") {
+        updated.thana = "";
+      }
+
+      return updated;
+    });
+
     setErrorMsg("");
     setSuccessMsg("");
   };
 
-  // . Submit — PATCH /user/me ────────────────────────
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -123,6 +167,10 @@ export default function ProfilePage() {
       body.append("name", formData.name);
       body.append("phoneNumber", formData.phoneNumber);
       body.append("email", formData.email);
+      body.append("country", formData.country);
+      body.append("division", formData.division);
+      body.append("district", formData.district);
+      body.append("thana", formData.thana);
       if (selectedFile) {
         body.append("profilePicture", selectedFile);
       }
@@ -133,7 +181,6 @@ export default function ProfilePage() {
         email: formData.email,
         hasFile: !!selectedFile,
       });
-
 
       const result = await updateMe(body).unwrap();
 
@@ -147,43 +194,34 @@ export default function ProfilePage() {
         apiError?.data?.message ||
         `Update failed${apiError?.status ? ` (${apiError.status})` : ""}. Please try again.`;
       setErrorMsg(errorMessage);
-      console.error("Update error:", err);
+      console.log("Update error:", err);
     } finally {
       setLoading(false);
     }
   };
 
- 
   if (fetchLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
-        <div className="w-10 h-10 border-4 rounded-full animate-spin" />
-        <p className="text-sm text-muted-foreground">Loading profile…</p>
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4">
+        <div className="h-10 w-10 animate-spin rounded-full border-4" />
+        <p className="text-muted-foreground text-sm">Loading profile…</p>
       </div>
     );
   }
 
-
   return (
-    <div className="min-h-screen py-8 px-4">
-      <div className="max-w-2xl mx-auto bg-card-primary rounded-lg shadow-sm overflow-hidden">
-
-        {/* ── Avatar & title ─────────────────────────── */}
-        <div className="p-12 text-center border-b border-border">
-
+    <div className="min-h-screen px-4 py-8">
+      <div className="bg-card-primary mx-auto max-w-3xl overflow-hidden rounded-lg shadow-sm">
+        {/* ── Avatar & title  */}
+        <div className="border-border border-b p-12 text-center">
           <div
-            className="relative w-32 h-32 mx-auto mb-6 border-4 shadow-sm border-success/5 rounded-full cursor-pointer overflow-hidden flex items-center justify-center group transition-colors"
+            className="border-success/5 group relative mx-auto mb-6 flex h-32 w-32 cursor-pointer items-center justify-center overflow-hidden rounded-full border-4 shadow-sm transition-colors"
             onClick={handleImageClick}
           >
             {previewImage ? (
-              <Image
-                src={previewImage}
-                alt="Profile"
-                fill
-                className="object-cover"
-              />
+              <Image src={previewImage} alt="Profile" fill className="object-cover" />
             ) : (
-              <div className="flex items-center justify-center w-full h-full bg-secondary text-muted-foreground">
+              <div className="bg-secondary text-muted-foreground flex h-full w-full items-center justify-center">
                 <svg
                   width="44"
                   height="44"
@@ -199,7 +237,7 @@ export default function ProfilePage() {
             )}
 
             {/* Camera overlay on hover */}
-            <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
+            <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
               <svg
                 width="20"
                 height="20"
@@ -222,100 +260,48 @@ export default function ProfilePage() {
             className="hidden"
           />
 
-          <h1 className="mt-4 mb-2 text-2xl font-semibold">
-            Personal Information
-          </h1>
-          <p className="mb-6 text-muted-foreground text-sm">
+          <h1 className="mt-4 mb-2 text-2xl font-semibold">Personal Information</h1>
+          <p className="text-muted-foreground mb-6 text-sm">
             Upload a profile picture or use the default placeholder.
           </p>
 
           <button
             type="button"
             onClick={handleImageClick}
-            className="px-6 py-2.5 rounded-md text-sm font-medium bg-button-primary text-button-primary-foreground cursor-pointer transition-all"
+            className="bg-button-primary text-button-primary-foreground cursor-pointer rounded-md px-6 py-2.5 text-sm font-medium transition-all"
           >
             Upload picture
           </button>
         </div>
 
-        {/* ── Form ───────────────────────────────────── */}
+        {/* ── Form  */}
         <form onSubmit={handleSubmit} className="p-8">
-
-          {/* Row 1 — Full name */}
-          <div className="mb-6">
-            <div className="flex flex-col gap-2">
-              <label htmlFor="name" className="text-sm font-medium">
-                Full Name <span className="text-danger">*</span>
-              </label>
-              <input
-                id="name"
-                name="name"
-                type="text"
-                placeholder="Full Name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-                className="px-3 py-2 border border-border rounded-md text-sm text-secondary-foreground focus:outline-none focus:ring-2 focus:ring-button-primary/30 transition-all"
-              />
-            </div>
-          </div>
-
-          {/* Row 2 — Phone / Email */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
-            <div className="flex flex-col gap-2">
-              <label htmlFor="phoneNumber" className="text-sm font-medium">
-                Phone Number <span className="text-danger">*</span>
-              </label>
-              <input
-                id="phoneNumber"
-                name="phoneNumber"
-                type="tel"
-                placeholder="+8801XXXXXXXXX"
-                value={formData.phoneNumber}
-                onChange={handleChange}
-                required
-                className="px-3 py-2 border border-border rounded-md text-sm text-secondary-foreground focus:outline-none focus:ring-2 focus:ring-button-primary/30 transition-all"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label htmlFor="email" className="text-sm font-medium">
-                Email <span className="text-danger">*</span>
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="you@example.com"
-                value={formData.email}
-                onChange={handleChange}
-                required
-                className="px-3 py-2 border border-border rounded-md text-sm text-secondary-foreground focus:outline-none focus:ring-2 focus:ring-button-primary/30 transition-all"
-              />
-            </div>
-          </div>
+          <ProfileInfoSection formData={formData} handleChange={handleChange} />
 
           {/* Feedback banners */}
           {successMsg && (
-            <div className="p-4 mb-6 bg-success/10 border border-success rounded-md text-success-foreground text-sm">
+            <div className="bg-success/10 border-success text-success-foreground mb-6 rounded-md border p-4 text-sm">
               {successMsg}
             </div>
           )}
           {errorMsg && (
-            <div className="p-4 mb-6 bg-danger/10 border border-danger rounded-md text-danger text-sm">
+            <div className="bg-danger/10 border-danger text-danger mb-6 rounded-md border p-4 text-sm">
               {errorMsg}
             </div>
           )}
 
+          <AddressSection formData={formData} handleChange={handleChange} />
+
           {/* Submit */}
-          <div className="flex gap-4 mt-8">
+          <div className="mt-8 flex gap-4">
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 px-6 py-3.5 rounded-md text-sm font-semibold cursor-pointer bg-button-primary text-button-primary-foreground disabled:opacity-60 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+              className="bg-button-primary text-button-primary-foreground flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-md px-6 py-3.5 text-sm font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-60"
             >
               {loading ? (
                 <>
-                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                   Saving…
                 </>
               ) : (

@@ -21,7 +21,7 @@ export default function BestCollection() {
     <section className="container">
       <SectionTitle subtitle="Featured Products" title="Our Best Collection" />
 
-      <div className="grid grid-cols-2 gap-2 md:grid-cols-4 lg:mt-30 lg:grid-cols-5 lg:space-y-15 lg:gap-4">
+      <div className="grid grid-cols-2 gap-2 md:grid-cols-4 lg:mt-30 lg:grid-cols-5 lg:gap-4 lg:space-y-15">
         {/*  Skeleton Loading */}
         {isLoading &&
           Array.from({ length: 12 }).map((_, index) => (
@@ -43,10 +43,10 @@ export default function BestCollection() {
             <Link
               href={`/product/${item.id}`}
               key={item.id}
-              className="group dark:shadow-2xl shadow-lg relative cursor-pointer rounded-xl border-2 p-3 text-center transition hover:shadow-xl lg:h-[250px]"
+              className="group relative cursor-pointer rounded-xl border-2 p-3 text-center shadow-lg transition hover:shadow-xl lg:h-[250px] dark:shadow-2xl"
             >
               {/* Image */}
-              <div className="relative h-30 lg:h-52 transition-transform duration-300 group-hover:scale-110 lg:-mt-25">
+              <div className="relative h-30 transition-transform duration-300 group-hover:scale-110 lg:-mt-25 lg:h-52">
                 {item.images?.length > 0 ? (
                   <Image
                     src={item.images[0]?.imageUrl}
@@ -61,21 +61,21 @@ export default function BestCollection() {
                 )}
               </div>
 
-            
-
               {/* Name */}
-              <h4 className="line-clamp-1 text-sm lg:text-xl font-medium">{item.name}</h4>
-              <p className="line-clamp-1 text-sm font-medium ">{item.shortDescription}</p>
+              <h4 className="line-clamp-1 text-sm font-medium lg:text-xl">{item.name}</h4>
+              <p className="line-clamp-1 text-sm font-medium">{item.shortDescription}</p>
 
               {/* Rating */}
-             <div className="flex items-center mt-5 justify-evenly">
-               <div className="mt-1 flex items-center justify-center gap-1 text-xs lg:text-sm">
-                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                <span>{item.avgRating ?? 0}</span>
-                <span className="text-muted-foreground">({item.reviewCount})</span>
+              <div className="mt-5 flex items-center justify-evenly">
+                <div className="mt-1 flex items-center justify-center gap-1 text-xs lg:text-sm">
+                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                  <span>{item.avgRating ?? 0}</span>
+                  <span className="text-muted-foreground">({item.reviewCount})</span>
+                </div>
+                <p className="text-danger mt-1 text-sm font-semibold lg:text-lg">
+                  ৳ {item.price ?? 999}
+                </p>
               </div>
-              <p className="text-danger  mt-1 text-sm lg:text-lg font-semibold">৳ {item.price ?? 999}</p>
-             </div>
             </Link>
           ))}
       </div>

@@ -92,7 +92,7 @@ export default function ThanaModal({ open, onOpenChange, thana }: Props) {
       setSelectedDivision([]);
       setSelectedDistrict([]);
     }
-  }, [thana, open]); // countries, divisions, districts, setValue, reset
+  }, [thana, open, countries, divisions, districts, setValue, reset]);
 
   const onSubmit = async (data: TThanaFormData) => {
     try {
@@ -136,16 +136,17 @@ export default function ThanaModal({ open, onOpenChange, thana }: Props) {
 
             <CustomSelect
               endpoint={`${API_URL}/country`}
-              fields={["id", "name"]}
               mapToOption={(item) => ({
                 value: String(item.id),
                 label: item.name,
               })}
               value={selectedCountry}
               onChange={(vals) => {
-                setSelectedCountry(vals as SelectOption[]);
+                const selected = vals ? (Array.isArray(vals) ? vals : [vals]) : [];
+                setSelectedCountry(selected);
                 setSelectedDivision([]);
                 setSelectedDistrict([]);
+                setValue("districtId", "");
               }}
               searchable
               paginated
@@ -159,19 +160,26 @@ export default function ThanaModal({ open, onOpenChange, thana }: Props) {
 
             <CustomSelect
               endpoint={`${API_URL}/division`}
-              fields={["id", "name"]}
+              extraParams={
+                selectedCountry[0]?.value
+                  ? { countryId: String(selectedCountry[0].value) }
+                  : {}
+              }
               mapToOption={(item) => ({
                 value: String(item.id),
                 label: item.name,
               })}
               value={selectedDivision}
               onChange={(vals) => {
-                setSelectedDivision(vals as SelectOption[]);
+                const selected = vals ? (Array.isArray(vals) ? vals : [vals]) : [];
+                setSelectedDivision(selected);
                 setSelectedDistrict([]);
+                setValue("districtId", "");
               }}
               searchable
               paginated
               placeholder="Select Division"
+              disabled={!selectedCountry[0]?.value}
             />
           </div>
 
@@ -181,7 +189,10 @@ export default function ThanaModal({ open, onOpenChange, thana }: Props) {
 
             <CustomSelect
               endpoint={`${API_URL}/district`}
-              fields={["id", "name"]}
+              extraParams={{
+                ...(selectedCountry[0]?.value ? { countryId: String(selectedCountry[0].value) } : {}),
+                ...(selectedDivision[0]?.value ? { divisionId: String(selectedDivision[0].value) } : {}),
+              }}
               mapToOption={(item) => ({
                 value: String(item.id),
                 label: item.name,
@@ -192,11 +203,12 @@ export default function ThanaModal({ open, onOpenChange, thana }: Props) {
 
                 setSelectedDistrict(selected);
 
-                setValue("districtId", String(selected[0]?.value));
+                setValue("districtId", String(selected[0]?.value ?? ""));
               }}
               searchable
               paginated
               placeholder="Select District"
+              disabled={!selectedDivision[0]?.value}
             />
 
             {errors.districtId && (

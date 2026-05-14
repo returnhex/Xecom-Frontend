@@ -24,3 +24,17 @@ export type TUpdateUserDto = {
   phoneNumber?: string;
   profilePicture?: File | string;
 };
+
+export type TUpdateAddressDto = {
+  street: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  country: string;
+};
+
+export type TChangePasswordDto = {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+};
