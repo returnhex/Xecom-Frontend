@@ -161,9 +161,7 @@ export default function ThanaModal({ open, onOpenChange, thana }: Props) {
             <CustomSelect
               endpoint={`${API_URL}/division`}
               extraParams={
-                selectedCountry[0]?.value
-                  ? { countryId: String(selectedCountry[0].value) }
-                  : {}
+                selectedCountry[0]?.value ? { countryId: String(selectedCountry[0].value) } : {}
               }
               mapToOption={(item) => ({
                 value: String(item.id),
@@ -190,8 +188,12 @@ export default function ThanaModal({ open, onOpenChange, thana }: Props) {
             <CustomSelect
               endpoint={`${API_URL}/district`}
               extraParams={{
-                ...(selectedCountry[0]?.value ? { countryId: String(selectedCountry[0].value) } : {}),
-                ...(selectedDivision[0]?.value ? { divisionId: String(selectedDivision[0].value) } : {}),
+                ...(selectedCountry[0]?.value
+                  ? { countryId: String(selectedCountry[0].value) }
+                  : {}),
+                ...(selectedDivision[0]?.value
+                  ? { divisionId: String(selectedDivision[0].value) }
+                  : {}),
               }}
               mapToOption={(item) => ({
                 value: String(item.id),

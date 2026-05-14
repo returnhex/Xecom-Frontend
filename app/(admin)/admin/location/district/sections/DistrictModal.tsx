@@ -150,9 +150,7 @@ export default function DistrictModal({ open, onOpenChange, district }: Props) {
             <CustomSelect
               endpoint={`${API_URL}/division`}
               extraParams={
-                selectedCountry[0]?.value
-                  ? { countryId: String(selectedCountry[0].value) }
-                  : {}
+                selectedCountry[0]?.value ? { countryId: String(selectedCountry[0].value) } : {}
               }
               mapToOption={(item) => ({
                 value: String(item.id),

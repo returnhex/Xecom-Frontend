@@ -61,7 +61,8 @@ export default function ChangePasswordPage() {
       });
       toast.success("Password updated successfully");
     } catch (err: any) {
-      const errorMessage = err?.data?.message || "Failed to change password. Please check your old password.";
+      const errorMessage =
+        err?.data?.message || "Failed to change password. Please check your old password.";
       setErrorMsg(errorMessage);
       console.error("Change password error:", err);
     } finally {
@@ -103,7 +104,7 @@ export default function ChangePasswordPage() {
                 <button
                   type="button"
                   onClick={() => setShowOldPassword(!showOldPassword)}
-                  className="text-muted-foreground hover:text-foreground absolute right-3 top-1/2 -translate-y-1/2"
+                  className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
                 >
                   {showOldPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -126,7 +127,7 @@ export default function ChangePasswordPage() {
                 <button
                   type="button"
                   onClick={() => setShowNewPassword(!showNewPassword)}
-                  className="text-muted-foreground hover:text-foreground absolute right-3 top-1/2 -translate-y-1/2"
+                  className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
                 >
                   {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -149,7 +150,7 @@ export default function ChangePasswordPage() {
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="text-muted-foreground hover:text-foreground absolute right-3 top-1/2 -translate-y-1/2"
+                  className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
                 >
                   {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>

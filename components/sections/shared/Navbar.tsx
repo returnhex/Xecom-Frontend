@@ -117,8 +117,9 @@ const Navbar = () => {
     <div className="bg-secondary w-full">
       {/* Top Bar */}
       <div
-        className={`bg-primary container mx-auto hidden py-2! text-sm text-white transition-all duration-300 ease-in-out lg:flex ${isSticky ? "h-0 overflow-hidden opacity-0" : "h-auto overflow-visible py-2! opacity-100"
-          }`}
+        className={`bg-primary container mx-auto hidden py-2! text-sm text-white transition-all duration-300 ease-in-out lg:flex ${
+          isSticky ? "h-0 overflow-hidden opacity-0" : "h-auto overflow-visible py-2! opacity-100"
+        }`}
       >
         <div className="flex w-1/2 items-center justify-between">
           <p className="flex items-center gap-2">
@@ -129,16 +130,37 @@ const Navbar = () => {
           </p>
         </div>
 
-        <div className="flex w-1/2 items-center justify-end gap-4">
-          <a href="tel:+8801902042884" className="text-sm">
-            Call Us: <span className="pl-2 font-semibold">88019020-42884</span>
+        <div className="flex w-1/2 items-center justify-end gap-6">
+          <a href="tel:+8801902042884" className="hover:text-white/80 flex items-center gap-2 text-sm transition-colors">
+            Call Us: <span className="font-semibold">+88019020-42884</span>
           </a>
+
+          <div className="flex items-center gap-4 border-l border-white/20 pl-4">
+            {user ? (
+              <button
+                onClick={handleLogout}
+                className="hover:text-white/80 flex cursor-pointer items-center gap-1 text-sm font-medium transition-colors"
+              >
+                <LogOut size={16} />
+                <span>Logout</span>
+              </button>
+            ) : (
+              <Link
+                href="/login"
+                className="hover:text-white/80 flex items-center gap-1 text-sm font-medium transition-colors"
+              >
+                <LogIn size={16} />
+                <span>Login</span>
+              </Link>
+            )}
+          </div>
         </div>
       </div>
       {isSticky && <div className="h-15" />}
       <nav
-        className={`bg-secondary left-0 w-full transition-all duration-300 ease-in-out ${isSticky ? "fixed top-0 z-40 py-3 shadow-md" : "relative py-3 shadow-sm"
-          }`}
+        className={`bg-secondary left-0 w-full transition-all duration-300 ease-in-out ${
+          isSticky ? "fixed top-0 z-40 py-3 shadow-md" : "relative py-3 shadow-sm"
+        }`}
       >
         <div className={`container mx-auto flex items-center justify-between py-0! md:px-4`}>
           <div className="flex items-center justify-center gap-20">
@@ -154,10 +176,11 @@ const Navbar = () => {
                   <Link
                     key={route.href}
                     href={route.href}
-                    className={`relative text-sm font-thin transition-colors ${isActive
+                    className={`relative text-sm font-thin transition-colors ${
+                      isActive
                         ? "text-primary after:bg-primary font-semibold after:absolute after:-bottom-1 after:left-0 after:h-0.5 after:w-full dark:text-white dark:after:bg-white"
                         : "text-foreground hover:text-foreground"
-                      }`}
+                    }`}
                   >
                     {route.label}
                   </Link>
@@ -314,8 +337,8 @@ const Navbar = () => {
                     </HoverCard>
 
                     {user.role === UserRole.SUPER_ADMIN ||
-                      user.role === UserRole.ADMIN ||
-                      user.role === UserRole.STAFF ? (
+                    user.role === UserRole.ADMIN ||
+                    user.role === UserRole.STAFF ? (
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Link
@@ -332,46 +355,10 @@ const Navbar = () => {
                     ) : null}
                   </>
                 )}
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div>
-                      <ThemeToggle />
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Toggle Theme</p>
-                  </TooltipContent>
-                </Tooltip>
 
-                {user ? (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        onClick={handleLogout}
-                        className="text-danger hover-button flex cursor-pointer items-center gap-1 transition"
-                      >
-                        <LogOut size={22} />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Logout</p>
-                    </TooltipContent>
-                  </Tooltip>
-                ) : (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Link
-                        href="/login"
-                        className="text-success hover-button flex cursor-pointer items-center gap-1 transition"
-                      >
-                        <LogIn size={22} />
-                      </Link>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Sign In</p>
-                    </TooltipContent>
-                  </Tooltip>
-                )}
+
+                <ThemeToggle />
+
               </div>
             </TooltipProvider>
           </div>
@@ -546,10 +533,11 @@ const Navbar = () => {
                         <Link
                           key={route.href}
                           href={route.href}
-                          className={`flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors ${isActive
+                          className={`flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                            isActive
                               ? "bg-primary/10 text-primary"
                               : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                            }`}
+                          }`}
                         >
                           {route.label}
                         </Link>

@@ -2,9 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
-import {
-  useGetMeQuery, useUpdateMeMutation,
-} from "@/redux/features/user/user.api";
+import { useGetMeQuery, useUpdateMeMutation } from "@/redux/features/user/user.api";
 import { TAdmin, TCustomer, TStaff } from "@/types";
 import ProfileInfoSection from "./sections/ProfileInfoSection";
 import AddressSection from "./sections/AddressSection";
@@ -113,9 +111,7 @@ export default function ProfilePage() {
     setErrorMsg("");
   };
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
 
     setFormData((prev) => {

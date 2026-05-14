@@ -101,7 +101,6 @@ const userApi = baseApi.injectEndpoints({
       invalidatesTags: ["user"],
       transformResponse: (response: TResponseRedux<TAdmin | TCustomer | TStaff>) => response,
     }),
-
   }),
 });
 

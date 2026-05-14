@@ -14,12 +14,12 @@ interface ProfileInfoSectionProps {
 const ProfileInfoSection = ({ formData, handleChange }: ProfileInfoSectionProps) => {
   return (
     <div className="mb-6">
-       <h2 className="mb-4 text-lg font-semibold">Personal Information</h2>
+      <h2 className="mb-4 text-lg font-semibold">Personal Information</h2>
       {/* Row 1 — Full name */}
       <div className="mb-6">
         <div className="flex flex-col gap-2">
           <label htmlFor="name" className="text-sm font-medium">
-            Full Name 
+            Full Name
           </label>
           <input
             id="name"
@@ -38,7 +38,7 @@ const ProfileInfoSection = ({ formData, handleChange }: ProfileInfoSectionProps)
       <div className="mb-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
         <div className="flex flex-col gap-2">
           <label htmlFor="phoneNumber" className="text-sm font-medium">
-            Phone Number 
+            Phone Number
           </label>
           <input
             id="phoneNumber"
@@ -53,7 +53,7 @@ const ProfileInfoSection = ({ formData, handleChange }: ProfileInfoSectionProps)
         </div>
         <div className="flex flex-col gap-2">
           <label htmlFor="email" className="text-sm font-medium">
-            Email 
+            Email
           </label>
           <input
             id="email"
