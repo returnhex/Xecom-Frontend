@@ -8,6 +8,9 @@ import { useGetAllDistrictQuery } from "@/redux/features/location/district.api";
 import { useGetAllThanasQuery } from "@/redux/features/location/thana.api";
 import CustomSelect, { SelectOption } from "@/components/custom/CustomSelect";
 import { API_URL } from "@/redux/api/baseApi";
+import { MapPin, Loader2, Save, Globe, Map, Navigation } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { motion } from "framer-motion";
 
 interface AddressSectionProps {
   formData: {
@@ -17,9 +20,16 @@ interface AddressSectionProps {
     thana: string;
   };
   handleChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  loading: boolean;
+  onSubmit: (e: React.FormEvent) => void;
 }
 
-const AddressSection = ({ formData, handleChange }: AddressSectionProps) => {
+const itemVariants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
+};
+
+const AddressSection = ({ formData, handleChange, loading, onSubmit }: AddressSectionProps) => {
   const { data: countries } = useGetAllCountriesQuery(undefined);
 
   const { data: divisions } = useGetAllDivisonQuery(
@@ -77,96 +87,142 @@ const AddressSection = ({ formData, handleChange }: AddressSectionProps) => {
       .map((t: any) => ({ value: t.id, label: t.name })) || [];
 
   return (
-    <div className="mb-6">
-      <h2 className="mb-4 text-lg font-semibold">Address Information</h2>
-
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-        {/* Country */}
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium">Country</label>
-          <CustomSelect
-            endpoint={`${API_URL}/country`}
-            fields={["id", "name"]}
-            mapToOption={(item) => ({ value: item.id, label: item.name })}
-            value={selectedCountry}
-            onChange={(val) => {
-              const v = (val as SelectOption)?.value?.toString() || "";
-              handleCustomChange("country", v);
-            }}
-            searchable
-            paginated
-            placeholder="Select Country"
-          />
-        </div>
-
-        {/* Division */}
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium">Division</label>
-          <CustomSelect
-            endpoint={`${API_URL}/division`}
-            fields={["id", "name"]}
-            extraParams={{ countryId: formData.country }}
-            mapToOption={(item) => ({ value: item.id, label: item.name })}
-            value={selectedDivision}
-            onChange={(val) => {
-              const v = (val as SelectOption)?.value?.toString() || "";
-              handleCustomChange("division", v);
-            }}
-            searchable
-            paginated
-            placeholder="Select Division"
-            disabled={!formData.country}
-          />
-        </div>
-
-        {/* District */}
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium">District</label>
-          <CustomSelect
-            endpoint={`${API_URL}/district`}
-            fields={["id", "name"]}
-            extraParams={{
-              countryId: formData.country,
-              divisionId: formData.division,
-            }}
-            mapToOption={(item) => ({ value: item.id, label: item.name })}
-            value={selectedDistrict}
-            onChange={(val) => {
-              const v = (val as SelectOption)?.value?.toString() || "";
-              handleCustomChange("district", v);
-            }}
-            searchable
-            paginated
-            placeholder="Select District"
-            disabled={!formData.division}
-          />
-        </div>
-
-        {/* Thana */}
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium">Thana</label>
-          <CustomSelect
-            endpoint={`${API_URL}/thana`}
-            fields={["id", "name"]}
-            extraParams={{
-              countryId: formData.country,
-              divisionId: formData.division,
-              districtId: formData.district,
-            }}
-            mapToOption={(item) => ({ value: item.id, label: item.name })}
-            value={selectedThana}
-            onChange={(val) => {
-              const v = (val as SelectOption)?.value?.toString() || "";
-              handleCustomChange("thana", v);
-            }}
-            searchable
-            paginated
-            placeholder="Select Thana"
-            disabled={!formData.district}
-          />
-        </div>
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={{
+        visible: { transition: { staggerChildren: 0.1 } },
+      }}
+      className="bg-card-primary border-border overflow-hidden rounded-lg border shadow-sm"
+    >
+      <div className="border-border border-b bg-linear-to-r from-transparent to-black/[0.02] p-6">
+        <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight">
+          <MapPin className="text-primary h-5 w-5" />
+          Address Information
+        </h2>
+        <p className="text-muted-foreground text-sm">Update your location and shipping details.</p>
       </div>
-    </div>
+
+      <form onSubmit={onSubmit} className="p-8">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          {/* Country */}
+          <motion.div variants={itemVariants} className="flex flex-col gap-2">
+            <Label className="flex items-center gap-2">
+              <Globe size={14} /> Country
+            </Label>
+            <CustomSelect
+              endpoint={`${API_URL}/country`}
+              fields={["id", "name"]}
+              mapToOption={(item) => ({ value: item.id, label: item.name })}
+              value={selectedCountry}
+              onChange={(val) => {
+                const v = (val as SelectOption)?.value?.toString() || "";
+                handleCustomChange("country", v);
+              }}
+              searchable
+              paginated
+              placeholder="Select Country"
+            />
+          </motion.div>
+
+          {/* Division */}
+          <motion.div variants={itemVariants} className="flex flex-col gap-2">
+            <Label className="flex items-center gap-2">
+              <Map size={14} /> Division
+            </Label>
+            <CustomSelect
+              endpoint={`${API_URL}/division`}
+              fields={["id", "name"]}
+              extraParams={{ countryId: formData.country }}
+              mapToOption={(item) => ({ value: item.id, label: item.name })}
+              value={selectedDivision}
+              onChange={(val) => {
+                const v = (val as SelectOption)?.value?.toString() || "";
+                handleCustomChange("division", v);
+              }}
+              searchable
+              paginated
+              placeholder="Select Division"
+            // disabled={!formData.country}
+            />
+          </motion.div>
+
+          {/* District */}
+          <motion.div variants={itemVariants} className="flex flex-col gap-2">
+            <Label className="flex items-center gap-2">
+              <Navigation size={14} /> District
+            </Label>
+            <CustomSelect
+              endpoint={`${API_URL}/district`}
+              fields={["id", "name"]}
+              extraParams={{
+                countryId: formData.country,
+                divisionId: formData.division,
+              }}
+              mapToOption={(item) => ({ value: item.id, label: item.name })}
+              value={selectedDistrict}
+              onChange={(val) => {
+                const v = (val as SelectOption)?.value?.toString() || "";
+                handleCustomChange("district", v);
+              }}
+              searchable
+              paginated
+              placeholder="Select District"
+            // disabled={!formData.division}
+            />
+          </motion.div>
+
+          {/* Thana */}
+          <motion.div variants={itemVariants} className="flex flex-col gap-2">
+            <Label className="flex items-center gap-2">
+              <MapPin size={14} /> Thana
+            </Label>
+            <CustomSelect
+              endpoint={`${API_URL}/thana`}
+              fields={["id", "name"]}
+              extraParams={{
+                countryId: formData.country,
+                divisionId: formData.division,
+                districtId: formData.district,
+              }}
+              mapToOption={(item) => ({ value: item.id, label: item.name })}
+              value={selectedThana}
+              onChange={(val) => {
+                const v = (val as SelectOption)?.value?.toString() || "";
+                handleCustomChange("thana", v);
+              }}
+              searchable
+              paginated
+              placeholder="Select Thana"
+            // disabled={!formData.district}
+            />
+          </motion.div>
+        </div>
+
+        {/* Save Button */}
+        <div className="mt-8 flex justify-end pt-4">
+          <motion.button
+            type="submit"
+            disabled={loading}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="bg-button-primary text-button-primary-foreground flex min-w-[160px] cursor-pointer items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-bold shadow-lg transition-all disabled:opacity-70"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save size={18} />
+                Save Address
+              </>
+            )}
+          </motion.button>
+        </div>
+      </form>
+    </motion.div>
   );
 };
 
