@@ -130,6 +130,7 @@ export default function ProductSummary({
           <SummaryRow label="Category" value={categoryName} />
           <SummaryRow label="Status" value={<Badge variant="outline">{data.status}</Badge>} />
           <SummaryRow label="Featured" value={data.featured ? "Yes" : "No"} />
+          <SummaryRow label="BestCollection" value={data.isBestCollection ? "Yes" : "No"} />
           <SummaryRow label="Short Description" value={data.shortDescription} />
         </SummaryCard>
 

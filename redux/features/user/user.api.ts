@@ -1,6 +1,6 @@
 import { baseApi } from "@/redux/api/baseApi";
 import { TAdmin, TCustomer, TQueryParam, TResponseRedux, TStaff, TUser } from "@/types";
-import { TAddAddressDto, TChangeStatusDto, TUserMetadata } from "./dto/user.dto";
+import { TAddAddressDto, TChangeStatusDto, TUserMetadata, TUpdateUserDto } from "./dto/user.dto";
 
 const userApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -90,6 +90,17 @@ const userApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["user", "address"],
     }),
+
+    //-----------------Update Me-----------------
+    updateMe: builder.mutation<TResponseRedux<TAdmin | TCustomer | TStaff>, FormData>({
+      query: (data: FormData) => ({
+        url: "/user/me",
+        method: "PATCH",
+        body: data,
+      }),
+      invalidatesTags: ["user"],
+      transformResponse: (response: TResponseRedux<TAdmin | TCustomer | TStaff>) => response,
+    }),
   }),
 });
 
@@ -99,4 +110,5 @@ export const {
   useGetUserMetadataQuery,
   useChangeStatusMutation,
   useAddUserAddressMutation,
+  useUpdateMeMutation,
 } = userApi;

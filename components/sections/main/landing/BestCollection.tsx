@@ -2,40 +2,82 @@
 
 import Image from "next/image";
 import SectionTitle from "@/components/sections/shared/SectionTitle";
-import { products } from "@/data/best-collaction";
 import Link from "next/link";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useGetAllProductsQuery } from "@/redux/features/product/product.api";
+import EmptyCard from "@/components/custom/EmptyCard";
+import { Package, Star } from "lucide-react";
 
 export default function BestCollection() {
+  const { data: ProductData, isLoading } = useGetAllProductsQuery([
+    { name: "isBestCollection", value: "true" },
+  ]);
+
+  const products = ProductData?.data || [];
+
+  console.log("Best Collection Products:", products);
+
   return (
     <section className="container">
       <SectionTitle subtitle="Featured Products" title="Our Best Collection" />
 
-      {/* GRID */}
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:mt-30 lg:grid-cols-4 lg:gap-30">
-        {products.map((item) => (
-          <Link
-            href={`/product-details/${item.id}`}
-            key={item.id}
-            className={`group bg-card-primary relative max-w-90 rounded-xl border-2 p-2 lg:h-50 ${item.border} text-center hover:shadow-xl ${item.shadowColor} cursor-pointer`}
-          >
-            {/* IMAGE */}
-            <div className="relative h-40 transition-transform duration-300 group-hover:scale-110 lg:-mt-25">
-              <Image src={item.image} alt={item.title} fill className="object-contain" />
+      <div className="grid grid-cols-2 gap-2 md:grid-cols-4 lg:mt-30 lg:grid-cols-5 lg:gap-4 lg:space-y-15">
+        {/*  Skeleton Loading */}
+        {isLoading &&
+          Array.from({ length: 12 }).map((_, index) => (
+            <div key={index} className="bg-card-primary rounded-xl border-2 p-2">
+              <Skeleton className="h-40 w-full rounded-md" />
+              <div className="mt-3 space-y-2">
+                <Skeleton className="mx-auto h-4 w-3/4" />
+                <Skeleton className="mx-auto h-4 w-1/2" />
+              </div>
             </div>
+          ))}
 
-            {/* COLOR DOTS */}
-            <div className="mb-2 flex justify-center gap-1">
-              <span className="bg-danger h-2 w-2 rounded-full" />
-              <span className="bg-success-foreground h-2 w-2 rounded-full" />
-              <span className="bg-rating h-2 w-2 rounded-full" />
-              <span className="bg-success-foreground h-2 w-2 rounded-full" />
-            </div>
+        {/*  No Data Found */}
+        {!isLoading && products.length === 0 && <EmptyCard></EmptyCard>}
 
-            {/* TEXT */}
-            <h4 className="text-sm font-medium">{item.title}</h4>
-            <p className="text-danger mt-1 text-sm font-semibold">{item.price}</p>
-          </Link>
-        ))}
+        {/*  Product List */}
+        {!isLoading &&
+          products.map((item: any) => (
+            <Link
+              href={`/product/${item.id}`}
+              key={item.id}
+              className="group relative cursor-pointer rounded-xl border-2 p-3 text-center shadow-lg transition hover:shadow-xl lg:h-[250px] dark:shadow-2xl"
+            >
+              {/* Image */}
+              <div className="relative h-30 transition-transform duration-300 group-hover:scale-110 lg:-mt-25 lg:h-52">
+                {item.images?.length > 0 ? (
+                  <Image
+                    src={item.images[0]?.imageUrl}
+                    alt={item.name}
+                    fill
+                    className="object-contain"
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center">
+                    <Package className="h-6 w-6 opacity-50" />
+                  </div>
+                )}
+              </div>
+
+              {/* Name */}
+              <h4 className="line-clamp-1 text-sm font-medium lg:text-xl">{item.name}</h4>
+              <p className="line-clamp-1 text-sm font-medium">{item.shortDescription}</p>
+
+              {/* Rating */}
+              <div className="mt-5 flex items-center justify-evenly">
+                <div className="mt-1 flex items-center justify-center gap-1 text-xs lg:text-sm">
+                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                  <span>{item.avgRating ?? 0}</span>
+                  <span className="text-muted-foreground">({item.reviewCount})</span>
+                </div>
+                <p className="text-danger mt-1 text-sm font-semibold lg:text-lg">
+                  ৳ {item.price ?? 999}
+                </p>
+              </div>
+            </Link>
+          ))}
       </div>
     </section>
   );

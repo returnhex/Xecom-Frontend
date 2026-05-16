@@ -24,6 +24,7 @@ export const productSchema = z
     categoryId: z.string().optional(),
     status: z.enum(["ACTIVE", "INACTIVE", "DRAFT"]),
     featured: z.boolean().default(false),
+    isBestCollection: z.boolean().default(false),
 
     // Media
     images: z.array(fileValidator).min(1, "At least one image is required"),

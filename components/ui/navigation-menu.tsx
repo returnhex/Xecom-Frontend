@@ -17,10 +17,12 @@ function NavigationMenu({
     <NavigationMenuPrimitive.Root
       data-slot="navigation-menu"
       data-viewport={viewport}
+      data-click-mode="true"
       className={cn(
-        "group/navigation-menu relative flex max-w-max flex-1 items-center justify-center",
+        "group/navigation-menu relative flex max-w-max flex-1 items-center justify-center [&_button[role=button]]:hover:bg-transparent",
         className
       )}
+      delayDuration={Number.MAX_SAFE_INTEGER}
       {...props}
     >
       {children}
@@ -56,7 +58,7 @@ function NavigationMenuItem({
 }
 
 const navigationMenuTriggerStyle = cva(
-  "group inline-flex w-max items-center justify-center rounded-md text-sm font-medium  hover:text-accent-foreground  focus:text-accent-foreground disabled:pointer-events-none disabled:opacity-50  data-[state=open]:text-accent-foreground  cursor-pointer focus-visible:ring-ring/50 outline-none transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1"
+  "group inline-flex w-max items-center justify-center rounded-md text-sm font-medium  hover:text-accent-foreground  focus:text-accent-foreground disabled:pointer-events-none disabled:opacity-50  data-[state=open]:text-accent-foreground  cursor-pointer outline-none transition-[color,box-shadow]"
 );
 
 function NavigationMenuTrigger({

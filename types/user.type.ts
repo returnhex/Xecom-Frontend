@@ -15,6 +15,10 @@ export type TUser = {
   lastLoginAt?: string | null;
   preferences: any;
   metadata: any;
+  country?: string | null;
+  division?: string | null;
+  district?: string | null;
+  thana?: string | null;
   createdAt: string;
   updatedAt: string;
 };

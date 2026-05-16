@@ -17,3 +17,24 @@ export type TUserMetadata = {
   totalInactiveUsers: number;
   totalVerifiedAccounts: number;
 };
+
+export type TUpdateUserDto = {
+  name?: string;
+  email?: string;
+  phoneNumber?: string;
+  profilePicture?: File | string;
+};
+
+export type TUpdateAddressDto = {
+  street: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  country: string;
+};
+
+export type TChangePasswordDto = {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+};

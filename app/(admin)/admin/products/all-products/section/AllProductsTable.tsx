@@ -177,9 +177,11 @@ const AllProductsTable = () => {
     const params = [...getPaginationParams(), ...getSortParams()];
 
     if (debouncedSearchTerm) params.push({ name: "searchTerm", value: debouncedSearchTerm });
-    if (status) {
-      params.push({ name: "isActive", value: status });
-    }
+
+    // Add status filters (multiple statuses)
+    status.forEach((statusValue) => {
+      params.push({ name: "statuses", value: statusValue });
+    });
 
     // Flatten all attribute values and send each as attributeValueIds
     const allAttributeValueIds = Object.values(selectedAttributeValues).flat();
@@ -195,13 +197,16 @@ const AllProductsTable = () => {
     return params;
   };
 
-  const [status, setStatus] = useState<string | null>(null);
+  const [status, setStatus] = useState<string[]>([]);
   const statusAttribute: TAttribute = {
-    id: "isActive",
-    name: "Active Products",
+    id: "status",
+    name: "Status",
     values: [
-      { id: "true", attributeId: "isActive", value: "ACTIVE" },
-      { id: "false", attributeId: "isActive", value: "INACTIVE" },
+      { id: ProductStatus.ACTIVE, attributeId: "status", value: "Active" },
+      { id: ProductStatus.INACTIVE, attributeId: "status", value: "Inactive" },
+      { id: ProductStatus.DRAFT, attributeId: "status", value: "Draft" },
+      { id: ProductStatus.OUT_OF_STOCK, attributeId: "status", value: "Out of Stock" },
+      { id: ProductStatus.DISCONTINUED, attributeId: "status", value: "Discontinued" },
     ],
   };
   const { data, isLoading, isFetching, isError } = useGetAllProductsQuery(buildQueryParams());
@@ -214,13 +219,13 @@ const AllProductsTable = () => {
   console.log("attribute data", attributesData);
 
   const totalActiveFilters = [
-    status,
+    ...status,
     ...Object.values(selectedAttributeValues).flat(),
     ...selectedCategories.map((c) => c.value),
   ].filter(Boolean).length;
 
   const clearAllFilters = () => {
-    setStatus(null);
+    setStatus([]);
     setSelectedAttributeValues({});
     setSelectedCategories([]);
     resetPage();
@@ -260,9 +265,9 @@ const AllProductsTable = () => {
           })}
           <AttributeFilter
             attribute={statusAttribute}
-            selectedValues={status ? [status] : []}
+            selectedValues={status}
             onValuesChange={(vals) => {
-              setStatus(vals[0] || null);
+              setStatus(vals);
               handleFilterChange();
             }}
           />

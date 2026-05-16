@@ -50,6 +50,7 @@
   --color-batch-foreground: #1f2937;
   --color-rating: #fbbf24; /* Used for ratings, stars, highlights, or positive emphasis. */
   --color-button-primary: #111827;
+  --color-button-primary-foreground: #ffffff;
   --color-button-secondary: #f08a1e;
   --color-button-ternary: #2563eb;
   --color-popover: #f8f8f8; /* Background of floating UI elements like: Dropdown menus, Tooltips, Popovers, Modals */
@@ -117,6 +118,7 @@
   --color-batch: #6b8e23;
   --color-batch-foreground: #f9fafb;
   --color-button-primary: #343b47;
+  --color-button-primary-foreground: #f5f5f5;
   --color-button-secondary: #f08a1e;
   --color-rating: #fbbf24;
   --color-popover: #141414;

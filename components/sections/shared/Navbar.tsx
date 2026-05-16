@@ -13,6 +13,7 @@ import {
   Package,
   Heart,
   MessageCircle,
+  Lock,
 } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 import { mainRoutes } from "@/route/main.route";
@@ -47,8 +48,6 @@ const Navbar = () => {
   const dispatch = useAppDispatch();
 
   const { data: cartData } = useGetMyCartQuery([]);
-
-  const [lastScrollY, setLastScrollY] = useState(0);
   const [cartOpen, setCartOpen] = useState(false);
 
   // Auth state
@@ -131,10 +130,41 @@ const Navbar = () => {
           </p>
         </div>
 
-        <div className="flex w-1/2 items-center justify-end gap-4">
-          <a href="tel:+8801902042884" className="text-sm">
-            Call Us: <span className="pl-2 font-semibold">88019020-42884</span>
+        <div className="flex w-1/2 items-center justify-end gap-6">
+          <a
+            href="tel:+8801902042884"
+            className="flex items-center gap-2 text-sm transition-colors hover:text-white/80"
+          >
+            Call Us: <span className="font-semibold">+88019020-42884</span>
           </a>
+
+          <div className="flex items-center gap-4 border-l border-white/20 pl-4">
+            {user ? (
+              <button
+                onClick={handleLogout}
+                className="flex cursor-pointer items-center gap-1 text-sm font-medium transition-colors hover:text-white/80"
+              >
+                <LogOut size={16} />
+                <span>Logout</span>
+              </button>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/login"
+                  className="flex items-center gap-1 text-sm font-medium transition-colors hover:text-white/80"
+                >
+                  <span>Login</span>
+                </Link>
+                <span>/</span>
+                <Link
+                  href="/register"
+                  className="flex items-center gap-1 text-sm font-medium transition-colors hover:text-white/80"
+                >
+                  <span>Register</span>
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
       </div>
       {isSticky && <div className="h-15" />}
@@ -185,7 +215,7 @@ const Navbar = () => {
                                 .join(",")}`}
                               className="hover:bg-muted block rounded-md px-3 py-2 text-sm font-medium transition-colors"
                             >
-                              All {AUDIENCE_LABELS[audience]}
+                              All
                             </Link>
 
                             {/* Loading skeleton */}
@@ -281,7 +311,6 @@ const Navbar = () => {
                               <User size={16} />
                               <span>My Profile</span>
                             </Link>
-
                             <Link
                               href="/orders"
                               className="hover:bg-muted flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm transition-colors"
@@ -304,6 +333,13 @@ const Navbar = () => {
                             >
                               <Heart size={16} />
                               <span>My Wishlist</span>
+                            </Link>
+                            <Link
+                              href="/profile/change-password"
+                              className="hover:bg-muted flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm transition-colors"
+                            >
+                              <Lock size={16} />
+                              <span>Change Password</span>
                             </Link>
                           </div>
                         </div>
@@ -329,46 +365,8 @@ const Navbar = () => {
                     ) : null}
                   </>
                 )}
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div>
-                      <ThemeToggle />
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Toggle Theme</p>
-                  </TooltipContent>
-                </Tooltip>
 
-                {user ? (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        onClick={handleLogout}
-                        className="text-danger hover-button flex cursor-pointer items-center gap-1 transition"
-                      >
-                        <LogOut size={22} />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Logout</p>
-                    </TooltipContent>
-                  </Tooltip>
-                ) : (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Link
-                        href="/login"
-                        className="text-success hover-button flex cursor-pointer items-center gap-1 transition"
-                      >
-                        <LogIn size={22} />
-                      </Link>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Sign In</p>
-                    </TooltipContent>
-                  </Tooltip>
-                )}
+                <ThemeToggle />
               </div>
             </TooltipProvider>
           </div>
@@ -572,7 +570,7 @@ const Navbar = () => {
                                       href={`/products?audience=${audience}`}
                                       className="hover:bg-muted block rounded-md px-3 py-2 text-sm font-medium transition-colors"
                                     >
-                                      All {AUDIENCE_LABELS[audience]}
+                                      All
                                     </Link>
                                   </li>
 

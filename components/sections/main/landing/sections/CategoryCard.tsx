@@ -18,7 +18,7 @@ export default function CategoryCard({ category, active }: Props) {
   return (
     <Link href={`/products?categories=${category.id}`}>
       <Card
-        className={`relative my-5 flex h-55 max-w-95 cursor-pointer flex-col items-center justify-center rounded-full border-0 bg-black/30 shadow-md backdrop-blur-sm transition-all duration-300 hover:shadow-lg lg:my-10 lg:h-105 ${active ? "ring-primary ring-4" : ""} `}
+        className={`relative my-5 flex h-55 max-w-95 cursor-pointer flex-col items-center justify-center rounded-full border-0 bg-black/30 shadow-md backdrop-blur-sm transition-all duration-300 hover:shadow-lg lg:my-10 lg:h-90 ${active ? "ring-primary ring-4" : ""} `}
       >
         <Image
           src={imageUrl}

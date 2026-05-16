@@ -16,7 +16,10 @@ import SpecificationsTab from "./sections/SpecificationsTab";
 import MediaTab from "./sections/MediaTab";
 import FaqTab from "./sections/FaqTab";
 import VariantsTab from "./sections/VariantsTab";
-import { useAddProductMutation } from "@/redux/features/product/product.api";
+import {
+  useAddProductMutation,
+  useSetProductFeaturedImageMutation,
+} from "@/redux/features/product/product.api";
 import { toast } from "sonner";
 import { ArrowBigLeft, ArrowBigRight } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -35,6 +38,7 @@ const TAB_FIELDS: Record<TabName, string[]> = {
     "categoryId",
     "status",
     "featured",
+    "isBestCollection",
   ],
   details: [
     "weight",
@@ -72,6 +76,7 @@ export default function AddProductPage() {
   const [imageFiles, setImageFiles] = useState<{ file: File; url: string }[]>([]);
   const [showSummary, setShowSummary] = useState(false);
   const [addProduct, { isLoading: isAdding }] = useAddProductMutation();
+  const [setProductFeaturedImage] = useSetProductFeaturedImageMutation();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fieldRefs = useRef<Record<string, HTMLElement | null>>({});
@@ -90,6 +95,7 @@ export default function AddProductPage() {
       relatedProductIds: [],
       status: "DRAFT",
       featured: false,
+      isBestCollection: false,
       images: [],
       video: null,
       manualFile: null,
@@ -187,6 +193,7 @@ export default function AddProductPage() {
         categoryId: data.categoryId,
         status: data.status,
         featured: data.featured,
+        isBestCollection: data.isBestCollection,
         weight: data.weight,
         weightUnit: data.weightUnit,
         warranty: data.warranty,
@@ -210,6 +217,24 @@ export default function AddProductPage() {
       });
       const result = await addProduct(formData).unwrap();
       console.log("API response:", result);
+
+      // If new images were added, set the first image as featured
+      if (result?.data?.id && data.images && data.images.length > 0) {
+        try {
+          const product = result.data;
+          const firstImage = product.images?.[0]; // ← always pick index 0
+
+          if (firstImage?.id) {
+            await setProductFeaturedImage({
+              productId: product.id,
+              imageId: firstImage.id,
+            }).unwrap();
+          }
+        } catch (featuredError) {
+          console.log("Error setting featured image:", featuredError);
+        }
+      }
+
       toast.success(result?.message || "Product created successfully 🎉");
       router.push("/admin/products/all-products");
       form.reset();

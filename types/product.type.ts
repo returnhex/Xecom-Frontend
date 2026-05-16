@@ -189,6 +189,7 @@ export type TProduct = {
   featured: boolean;
   weight?: string | null;
   tags: string[];
+  isBestCollection: boolean;
 
   // ✅ FIX: weightUnit is a string ("KG", "G", etc.), not number
   weightUnit: string;
