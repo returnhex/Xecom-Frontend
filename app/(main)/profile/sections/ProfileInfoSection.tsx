@@ -57,7 +57,10 @@ const ProfileInfoSection = ({
       <form onSubmit={onSubmit} className="p-8">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-12">
           {/* Left Column — Avatar */}
-          <motion.div variants={itemVariants} className="flex flex-col items-center justify-start gap-4 lg:col-span-4">
+          <motion.div
+            variants={itemVariants}
+            className="flex flex-col items-center justify-start gap-4 lg:col-span-4"
+          >
             <div
               className="group relative h-48 w-48 cursor-pointer overflow-hidden rounded-2xl border-4 border-white shadow-xl ring-1 ring-black/5 transition-transform hover:scale-[1.02] dark:border-zinc-800"
               onClick={handleImageClick}
@@ -87,7 +90,7 @@ const ProfileInfoSection = ({
 
             <div className="text-center">
               <p className="text-sm font-semibold">Profile Picture</p>
-              <p className="text-muted-foreground text-[11px] mt-1">JPG, PNG or WEBP. Max 5MB.</p>
+              <p className="text-muted-foreground mt-1 text-[11px]">JPG, PNG or WEBP. Max 5MB.</p>
             </div>
           </motion.div>
 

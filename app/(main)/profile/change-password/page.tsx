@@ -116,16 +116,10 @@ export default function ChangePasswordPage() {
             </motion.div>
           </motion.div>
 
-          <motion.h1
-            variants={itemVariants}
-            className="text-3xl font-bold tracking-tight"
-          >
+          <motion.h1 variants={itemVariants} className="text-3xl font-bold tracking-tight">
             Security Center
           </motion.h1>
-          <motion.p
-            variants={itemVariants}
-            className="text-muted-foreground mt-2 text-sm"
-          >
+          <motion.p variants={itemVariants} className="text-muted-foreground mt-2 text-sm">
             Update your account password to ensure your data stays protected.
           </motion.p>
         </div>
@@ -179,7 +173,9 @@ export default function ChangePasswordPage() {
                   {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
-              <p className="text-muted-foreground text-[11px]">Must be at least 6 characters long.</p>
+              <p className="text-muted-foreground text-[11px]">
+                Must be at least 6 characters long.
+              </p>
             </motion.div>
 
             {/* Confirm Password */}

@@ -143,7 +143,6 @@ const AddressSection = ({ formData, handleChange, loading, onSubmit }: AddressSe
               searchable
               paginated
               placeholder="Select Division"
-            // disabled={!formData.country}
             />
           </motion.div>
 
@@ -168,7 +167,6 @@ const AddressSection = ({ formData, handleChange, loading, onSubmit }: AddressSe
               searchable
               paginated
               placeholder="Select District"
-            // disabled={!formData.division}
             />
           </motion.div>
 
@@ -194,7 +192,6 @@ const AddressSection = ({ formData, handleChange, loading, onSubmit }: AddressSe
               searchable
               paginated
               placeholder="Select Thana"
-            // disabled={!formData.district}
             />
           </motion.div>
         </div>

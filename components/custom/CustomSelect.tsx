@@ -177,13 +177,19 @@ export const CustomSelect = ({
     setSearchTerm("");
     loadingRef.current = false;
 
-    loadRef.current("", 1, true);
-  }, [endpoint]);
+    if (open) {
+      loadRef.current("", 1, true);
+    }
+  }, [endpoint, open]);
 
   // ← NEW: extraParams পরিবর্তন হলে reset + re-fetch
   const extraParamsKey = JSON.stringify(extraParams);
-  const prevExtraParamsRef = useRef<string>("");
+  const prevExtraParamsRef = useRef<string | undefined>(undefined);
   useEffect(() => {
+    if (prevExtraParamsRef.current === undefined) {
+      prevExtraParamsRef.current = extraParamsKey;
+      return;
+    }
     if (prevExtraParamsRef.current === extraParamsKey) return;
     prevExtraParamsRef.current = extraParamsKey;
 
@@ -193,8 +199,10 @@ export const CustomSelect = ({
     setSearchTerm("");
     loadingRef.current = false;
 
-    loadRef.current("", 1, true);
-  }, [extraParamsKey]);
+    if (open) {
+      loadRef.current("", 1, true);
+    }
+  }, [extraParamsKey, open]);
 
   // ── Debounced search ───────────────────────────────────────────────────────
 

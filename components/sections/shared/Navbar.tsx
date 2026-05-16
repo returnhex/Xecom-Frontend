@@ -152,15 +152,13 @@ const Navbar = () => {
                   href="/login"
                   className="flex items-center gap-1 text-sm font-medium transition-colors hover:text-white/80"
                 >
-
                   <span>Login</span>
                 </Link>
-                /
+                <span>/</span>
                 <Link
                   href="/register"
                   className="flex items-center gap-1 text-sm font-medium transition-colors hover:text-white/80"
                 >
-
                   <span>Register</span>
                 </Link>
               </div>
@@ -310,14 +308,6 @@ const Navbar = () => {
                               <User size={16} />
                               <span>My Profile</span>
                             </Link>
-
-                            <Link
-                              href="/profile/change-password"
-                              className="hover:bg-muted flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm transition-colors"
-                            >
-                              <Lock size={16} />
-                              <span>Change Password</span>
-                            </Link>
                             <Link
                               href="/orders"
                               className="hover:bg-muted flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm transition-colors"
@@ -340,6 +330,13 @@ const Navbar = () => {
                             >
                               <Heart size={16} />
                               <span>My Wishlist</span>
+                            </Link>
+                            <Link
+                              href="/profile/change-password"
+                              className="hover:bg-muted flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm transition-colors"
+                            >
+                              <Lock size={16} />
+                              <span>Change Password</span>
                             </Link>
                           </div>
                         </div>

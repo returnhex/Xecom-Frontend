@@ -6,8 +6,6 @@ import { TAdmin, TCustomer, TStaff } from "@/types";
 import ProfileInfoSection from "./sections/ProfileInfoSection";
 import AddressSection from "./sections/AddressSection";
 import { toast } from "sonner";
-import { motion } from "framer-motion";
-
 interface ProfileFormData {
   name: string;
   phoneNumber: string;
@@ -157,14 +155,14 @@ export default function ProfilePage() {
   if (fetchLoading) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <div className="border-primary h-10 w-10 animate-spin rounded-full border-4 border-t-transparent" />
         <p className="text-muted-foreground text-sm">Loading profile…</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen container">
+    <div className="container min-h-screen">
       <div className="flex flex-col items-start justify-center gap-8 lg:flex-row">
         {/* Personal Information Card */}
         <div className="w-full lg:flex-1">
