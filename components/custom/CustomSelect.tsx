@@ -114,10 +114,10 @@ export const CustomSelect = ({
           const mappedData = mapToOption
             ? json.data.map(mapToOption)
             : json.data.map((item: any) => ({
-              value: item.id,
-              label: item.name || item.label,
-              ...item,
-            }));
+                value: item.id,
+                label: item.name || item.label,
+                ...item,
+              }));
 
           const hasMorePages =
             json.meta?.hasNextPage ??
@@ -326,8 +326,9 @@ export const CustomSelect = ({
         )}
 
         <ChevronDown
-          className={`text-muted-foreground h-4 w-4 shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""
-            }`}
+          className={`text-muted-foreground h-4 w-4 shrink-0 transition-transform duration-200 ${
+            open ? "rotate-180" : ""
+          }`}
         />
       </button>
 
