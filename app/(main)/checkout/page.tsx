@@ -16,7 +16,6 @@ import {
 import Image from "next/image";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-import { z } from "zod";
 import { CartData } from "@/data/cart";
 import { checkoutSchema, type CheckoutFormData } from "@/lib/shepping.Schema";
 import {
