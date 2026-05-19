@@ -10,12 +10,7 @@ import CustomSelect, { SelectOption } from "@/components/custom/CustomSelect";
 import { useAppSelector } from "@/redux/hooks";
 import { selectCurrentUser } from "@/redux/features/auth/authSlice";
 import { useGetMeQuery, useAddUserAddressMutation } from "@/redux/features/user/user.api";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
 export interface SavedAddressDetail {
@@ -64,7 +59,8 @@ const AddAddressModal = ({ isOpen, onClose, onSave }: AddAddressModalProps) => {
   useEffect(() => {
     if (userData?.data) {
       const profile = userData.data;
-      const phoneNum = (profile as any)?.user?.phoneNumber || (currentUser as any)?.phoneNumber || "";
+      const phoneNum =
+        (profile as any)?.user?.phoneNumber || (currentUser as any)?.phoneNumber || "";
       setPhone(phoneNum);
 
       if ((profile as any)?.user?.name) {
@@ -130,19 +126,21 @@ const AddAddressModal = ({ isOpen, onClose, onSave }: AddAddressModalProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-2xl bg-white p-0 overflow-hidden shadow-2xl border border-slate-100 rounded-lg">
-        <div className="border-b border-slate-100 px-8 py-5">
-          <DialogTitle className="text-lg font-semibold text-slate-950">Add new address</DialogTitle>
-          <DialogDescription className="text-xs text-slate-500 mt-1">
+      <DialogContent className="max-w-2xl overflow-hidden rounded-lg border border-border bg-card-primary p-0 shadow-2xl">
+        <div className="border-b border-border px-8 py-5">
+          <DialogTitle className="text-lg font-semibold text-foreground">
+            Add new address
+          </DialogTitle>
+          <DialogDescription className="mt-1 text-xs text-muted-foreground">
             Use this address for delivery and billing.
           </DialogDescription>
         </div>
 
-        <form onSubmit={handleSaveAddress} className="px-8 py-6 space-y-5">
+        <form onSubmit={handleSaveAddress} className="space-y-5 px-8 py-6">
           <div className="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
             {/* Full name */}
-            <div className="col-span-1 sm:col-span-2 space-y-1.5">
-              <Label htmlFor="fullName" className="text-xs font-semibold text-slate-700">
+            <div className="col-span-1 space-y-1.5 sm:col-span-2">
+              <Label htmlFor="fullName" className="text-xs font-semibold text-foreground">
                 Full name *
               </Label>
               <Input
@@ -150,17 +148,18 @@ const AddAddressModal = ({ isOpen, onClose, onSave }: AddAddressModalProps) => {
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="Full name"
-                className={`h-10 text-xs border-slate-200 placeholder:text-slate-400 focus:border-black focus:ring-0 ${modalErrors.fullName ? "border-red-500" : ""
-                  }`}
+                className={`h-10 border-border bg-card-primary text-xs text-foreground placeholder:text-muted-foreground focus:border-button-primary focus:ring-0 ${
+                  modalErrors.fullName ? "border-danger text-danger" : ""
+                }`}
               />
               {modalErrors.fullName && (
-                <p className="text-3xs text-red-500 font-medium">{modalErrors.fullName}</p>
+                <p className="text-3xs font-medium text-danger">{modalErrors.fullName}</p>
               )}
             </div>
 
             {/* Phone */}
-            <div className="col-span-1 sm:col-span-2 space-y-1.5">
-              <Label htmlFor="phone" className="text-xs font-semibold text-slate-700">
+            <div className="col-span-1 space-y-1.5 sm:col-span-2">
+              <Label htmlFor="phone" className="text-xs font-semibold text-foreground">
                 Phone *
               </Label>
               <Input
@@ -168,18 +167,19 @@ const AddAddressModal = ({ isOpen, onClose, onSave }: AddAddressModalProps) => {
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="+880"
-                className={`h-10 text-xs border-slate-200 placeholder:text-slate-400 focus:border-black focus:ring-0 ${modalErrors.phone ? "border-red-500" : ""
-                  }`}
+                className={`h-10 border-border bg-card-primary text-xs text-foreground placeholder:text-muted-foreground focus:border-button-primary focus:ring-0 ${
+                  modalErrors.phone ? "border-danger text-danger" : ""
+                }`}
               />
               {modalErrors.phone && (
-                <p className="text-3xs text-red-500 font-medium">{modalErrors.phone}</p>
+                <p className="text-3xs font-medium text-danger">{modalErrors.phone}</p>
               )}
             </div>
 
             {/* Country */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-slate-700">Country *</Label>
-              <div className={modalErrors.country ? "rounded border border-red-500" : ""}>
+              <Label className="text-xs font-semibold text-foreground">Country *</Label>
+              <div className={modalErrors.country ? "rounded border border-danger" : ""}>
                 <CustomSelect
                   endpoint={`${API_URL}/country`}
                   fields={["id", "name"]}
@@ -201,19 +201,21 @@ const AddAddressModal = ({ isOpen, onClose, onSave }: AddAddressModalProps) => {
                 />
               </div>
               {modalErrors.country && (
-                <p className="text-3xs text-red-500 font-medium">{modalErrors.country}</p>
+                <p className="text-3xs font-medium text-danger">{modalErrors.country}</p>
               )}
             </div>
 
             {/* Division */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-slate-700">Division *</Label>
-              <div className={modalErrors.division ? "rounded border border-red-500" : ""}>
+              <Label className="text-xs font-semibold text-foreground">Division *</Label>
+              <div className={modalErrors.division ? "rounded border border-danger" : ""}>
                 <CustomSelect
                   key={`modal-division-${selectedCountry[0]?.value}`}
                   endpoint={`${API_URL}/division`}
                   fields={["id", "name"]}
-                  extraParams={selectedCountry[0]?.value ? { countryId: selectedCountry[0].value } : {}}
+                  extraParams={
+                    selectedCountry[0]?.value ? { countryId: selectedCountry[0].value } : {}
+                  }
                   mapToOption={(item) => ({
                     value: String(item.id),
                     label: item.name,
@@ -227,18 +229,20 @@ const AddAddressModal = ({ isOpen, onClose, onSave }: AddAddressModalProps) => {
                   }}
                   searchable
                   paginated
-                  placeholder={selectedCountry[0]?.value ? "Select division" : "Select country first"}
+                  placeholder={
+                    selectedCountry[0]?.value ? "Select division" : "Select country first"
+                  }
                 />
               </div>
               {modalErrors.division && (
-                <p className="text-3xs text-red-500 font-medium">{modalErrors.division}</p>
+                <p className="text-3xs font-medium text-danger">{modalErrors.division}</p>
               )}
             </div>
 
             {/* District */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-slate-700">District *</Label>
-              <div className={modalErrors.district ? "rounded border border-red-500" : ""}>
+              <Label className="text-xs font-semibold text-foreground">District *</Label>
+              <div className={modalErrors.district ? "rounded border border-danger" : ""}>
                 <CustomSelect
                   key={`modal-district-${selectedDivision[0]?.value}`}
                   endpoint={`${API_URL}/district`}
@@ -246,9 +250,9 @@ const AddAddressModal = ({ isOpen, onClose, onSave }: AddAddressModalProps) => {
                   extraParams={
                     selectedDivision[0]?.value
                       ? {
-                        countryId: selectedCountry[0]?.value,
-                        divisionId: selectedDivision[0].value,
-                      }
+                          countryId: selectedCountry[0]?.value,
+                          divisionId: selectedDivision[0].value,
+                        }
                       : {}
                   }
                   mapToOption={(item) => ({
@@ -263,18 +267,20 @@ const AddAddressModal = ({ isOpen, onClose, onSave }: AddAddressModalProps) => {
                   }}
                   searchable
                   paginated
-                  placeholder={selectedDivision[0]?.value ? "Select district" : "Select division first"}
+                  placeholder={
+                    selectedDivision[0]?.value ? "Select district" : "Select division first"
+                  }
                 />
               </div>
               {modalErrors.district && (
-                <p className="text-3xs text-red-500 font-medium">{modalErrors.district}</p>
+                <p className="text-3xs font-medium text-danger">{modalErrors.district}</p>
               )}
             </div>
 
             {/* Area (Thana) */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-slate-700">Area *</Label>
-              <div className={modalErrors.thana ? "rounded border border-red-500" : ""}>
+              <Label className="text-xs font-semibold text-foreground">Area *</Label>
+              <div className={modalErrors.thana ? "rounded border border-danger" : ""}>
                 <CustomSelect
                   key={`modal-thana-${selectedDistrict[0]?.value}`}
                   endpoint={`${API_URL}/thana`}
@@ -282,10 +288,10 @@ const AddAddressModal = ({ isOpen, onClose, onSave }: AddAddressModalProps) => {
                   extraParams={
                     selectedDistrict[0]?.value
                       ? {
-                        countryId: selectedCountry[0]?.value,
-                        divisionId: selectedDivision[0]?.value,
-                        districtId: selectedDistrict[0].value,
-                      }
+                          countryId: selectedCountry[0]?.value,
+                          divisionId: selectedDivision[0]?.value,
+                          districtId: selectedDistrict[0].value,
+                        }
                       : {}
                   }
                   mapToOption={(item) => ({
@@ -300,13 +306,13 @@ const AddAddressModal = ({ isOpen, onClose, onSave }: AddAddressModalProps) => {
                 />
               </div>
               {modalErrors.thana && (
-                <p className="text-3xs text-red-500 font-medium">{modalErrors.thana}</p>
+                <p className="text-3xs font-medium text-danger">{modalErrors.thana}</p>
               )}
             </div>
 
             {/* Address */}
             <div className="space-y-1.5">
-              <Label htmlFor="address" className="text-xs font-semibold text-slate-700">
+              <Label htmlFor="address" className="text-xs font-semibold text-foreground">
                 Address *
               </Label>
               <Input
@@ -314,17 +320,18 @@ const AddAddressModal = ({ isOpen, onClose, onSave }: AddAddressModalProps) => {
                 value={streetAddress}
                 onChange={(e) => setStreetAddress(e.target.value)}
                 placeholder="House, road, block"
-                className={`h-10 text-xs border-slate-200 placeholder:text-slate-400 focus:border-black focus:ring-0 ${modalErrors.streetAddress ? "border-red-500" : ""
-                  }`}
+                className={`h-10 border-border bg-card-primary text-xs text-foreground placeholder:text-muted-foreground focus:border-button-primary focus:ring-0 ${
+                  modalErrors.streetAddress ? "border-danger text-danger" : ""
+                }`}
               />
               {modalErrors.streetAddress && (
-                <p className="text-3xs text-red-500 font-medium">{modalErrors.streetAddress}</p>
+                <p className="text-3xs font-medium text-danger">{modalErrors.streetAddress}</p>
               )}
             </div>
 
             {/* Postcode */}
             <div className="space-y-1.5">
-              <Label htmlFor="postcode" className="text-xs font-semibold text-slate-700">
+              <Label htmlFor="postcode" className="text-xs font-semibold text-foreground">
                 Postcode *
               </Label>
               <Input
@@ -332,14 +339,14 @@ const AddAddressModal = ({ isOpen, onClose, onSave }: AddAddressModalProps) => {
                 value={postcode}
                 onChange={(e) => setPostcode(e.target.value)}
                 placeholder="Postcode"
-                className={`h-10 text-xs border-slate-200 placeholder:text-slate-400 focus:border-black focus:ring-0 ${modalErrors.postcode ? "border-red-500" : ""
-                  }`}
+                className={`h-10 border-border bg-card-primary text-xs text-foreground placeholder:text-muted-foreground focus:border-button-primary focus:ring-0 ${
+                  modalErrors.postcode ? "border-danger text-danger" : ""
+                }`}
               />
               {modalErrors.postcode && (
-                <p className="text-3xs text-red-500 font-medium">{modalErrors.postcode}</p>
+                <p className="text-3xs font-medium text-danger">{modalErrors.postcode}</p>
               )}
             </div>
-
           </div>
 
           {/* Set as Default Checkbox */}
@@ -349,24 +356,27 @@ const AddAddressModal = ({ isOpen, onClose, onSave }: AddAddressModalProps) => {
               checked={isDefault}
               onCheckedChange={(checked) => setIsDefault(!!checked)}
             />
-            <label htmlFor="defaultAddress" className="text-xs font-medium text-slate-700 cursor-pointer select-none">
+            <label
+              htmlFor="defaultAddress"
+              className="cursor-pointer text-xs font-medium text-foreground select-none"
+            >
               Set as default address
             </label>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center justify-end gap-4 border-t border-slate-100 pt-5">
+          <div className="flex items-center justify-end gap-4 border-t border-border pt-5">
             <button
               type="button"
               onClick={onClose}
-              className="text-xs font-medium text-slate-600 hover:text-black hover:underline cursor-pointer"
+              className="cursor-pointer text-xs font-medium text-muted-foreground hover:text-foreground hover:underline"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSavingAddress}
-              className="flex items-center justify-center gap-1.5 rounded bg-black px-6 py-2.5 text-xs font-bold text-white transition hover:bg-slate-800 active:scale-[0.98] disabled:opacity-50"
+              className="flex items-center justify-center gap-1.5 rounded-lg bg-button-primary px-6 py-2.5 text-xs font-bold text-button-primary-foreground transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50"
             >
               {isSavingAddress ? (
                 <>

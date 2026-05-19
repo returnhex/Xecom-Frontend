@@ -10,8 +10,8 @@ import {
 import { logout, setUser } from "@/redux/features/auth/authSlice";
 import { toast } from "sonner";
 
-export const API_URL = "http://localhost:5002";
-// export const API_URL = "https://xecom-backend.onrender.com";
+// export const API_URL = "http://localhost:5002";
+export const API_URL = "https://xecom-backend.onrender.com";
 
 const baseQuery = fetchBaseQuery({
   baseUrl: API_URL,

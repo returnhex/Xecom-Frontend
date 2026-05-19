@@ -17,10 +17,10 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
 
   useEffect(() => {
     // If no user is logged in, redirect to login
-    if (!user) {
-      router.push("/login");
-      return;
-    }
+    // if (!user) {
+    //   router.push("/login");
+    //   return;
+    // }
 
     // If allowed roles are specified and user's role is not in the list, redirect to home
     if (allowedRoles && allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
