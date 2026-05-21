@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { TQueryParam } from "@/types";
 import { useGetAllCountriesQuery } from "@/redux/features/location/country.api";
 import { useGetAllDivisonQuery } from "@/redux/features/location/division.api";
 import { useGetAllDistrictQuery } from "@/redux/features/location/district.api";
@@ -95,7 +94,7 @@ const AddressSection = ({ formData, handleChange, loading, onSubmit }: AddressSe
       }}
       className="bg-card-primary border-border overflow-hidden rounded-lg border shadow-sm"
     >
-      <div className="border-border border-b bg-linear-to-r from-transparent to-black/[0.02] p-6">
+      <div className="border-border border-b bg-linear-to-r from-transparent to-black/2 p-6">
         <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight">
           <MapPin className="text-primary h-5 w-5" />
           Address Information
@@ -203,7 +202,7 @@ const AddressSection = ({ formData, handleChange, loading, onSubmit }: AddressSe
             disabled={loading}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            className="bg-button-primary text-button-primary-foreground flex min-w-[160px] cursor-pointer items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-bold shadow-lg transition-all disabled:opacity-70"
+            className="bg-button-primary text-button-primary-foreground flex min-w-40 cursor-pointer items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-bold shadow-lg transition-all disabled:opacity-70"
           >
             {loading ? (
               <>

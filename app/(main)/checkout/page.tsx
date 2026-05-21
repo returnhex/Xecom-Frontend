@@ -16,7 +16,6 @@ import {
 import Image from "next/image";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-import { z } from "zod";
 import { CartData } from "@/data/cart";
 import { checkoutSchema, type CheckoutFormData } from "@/lib/shepping.Schema";
 import {
@@ -245,9 +244,9 @@ const CheckoutPage = () => {
   };
 
   return (
-    <div className="cart-bg min-h-screen py-8">
+    <div className="cart-bg min-h-screen container">
       <div className="mx-auto">
-        <div className="mx-auto w-11/12 justify-center gap-3 px-4 lg:flex">
+        <div className=" justify-center gap-3 px-4 lg:flex">
           {/* Left Column */}
           <div className={`${activeStep === "payment" ? "lg:w-full" : "lg:w-8/12"}`}>
             <div className="mb-3">
@@ -531,11 +530,10 @@ const CheckoutPage = () => {
                       <div key={voucher.id}>
                         {canApply ? (
                           <div
-                            className={`mb-4 flex items-center gap-2 rounded-lg p-3 text-sm ${
-                              offerInfo.status === "active"
-                                ? "bg-success text-success-foreground border-success/30 border"
-                                : "bg-muted text-muted-foreground border-border border"
-                            }`}
+                            className={`mb-4 flex items-center gap-2 rounded-lg p-3 text-sm ${offerInfo.status === "active"
+                              ? "bg-success text-success-foreground border-success/30 border"
+                              : "bg-muted text-muted-foreground border-border border"
+                              }`}
                           >
                             {offerInfo.status === "active" ? (
                               <Check size={16} />
