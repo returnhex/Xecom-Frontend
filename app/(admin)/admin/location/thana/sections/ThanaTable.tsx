@@ -152,8 +152,9 @@ export default function ThanaTable({ onEdit }: ThanaTableProps) {
         <div className="flex items-center gap-x-4">
           {/* Country Filter */}
           <div
-            className={`max-w-64 min-w-44 ${selectedCountry ? "[&_button]:border-primary [&_button]:bg-primary/5" : ""
-              }`}
+            className={`max-w-64 min-w-44 ${
+              selectedCountry ? "[&_button]:border-primary [&_button]:bg-primary/5" : ""
+            }`}
           >
             <CustomSelect
               endpoint={`${API_URL}/country`}
@@ -179,8 +180,9 @@ export default function ThanaTable({ onEdit }: ThanaTableProps) {
 
           {/* Division Filter */}
           <div
-            className={`max-w-64 min-w-44 ${selectedDivision ? "[&_button]:border-primary [&_button]:bg-primary/5" : ""
-              }`}
+            className={`max-w-64 min-w-44 ${
+              selectedDivision ? "[&_button]:border-primary [&_button]:bg-primary/5" : ""
+            }`}
           >
             <CustomSelect
               endpoint={`${API_URL}/division`}
@@ -204,15 +206,18 @@ export default function ThanaTable({ onEdit }: ThanaTableProps) {
             />
           </div>
           <div
-            className={`max-w-64 min-w-44 ${selectedDistrict ? "[&_button]:border-primary [&_button]:bg-primary/5" : ""
-              }`}
+            className={`max-w-64 min-w-44 ${
+              selectedDistrict ? "[&_button]:border-primary [&_button]:bg-primary/5" : ""
+            }`}
           >
             <CustomSelect
               endpoint={`${API_URL}/district`}
               fields={["id", "name"]}
               extraParams={{
                 ...(selectedCountry?.value ? { countryId: selectedCountry.value.toString() } : {}),
-                ...(selectedDivision?.value ? { divisionId: selectedDivision.value.toString() } : {}),
+                ...(selectedDivision?.value
+                  ? { divisionId: selectedDivision.value.toString() }
+                  : {}),
               }}
               mapToOption={(item) => ({
                 value: item.id,
@@ -235,8 +240,9 @@ export default function ThanaTable({ onEdit }: ThanaTableProps) {
 
       {/* Table */}
       <div
-        className={`relative transition-opacity duration-200 ${isRefetching ? "pointer-events-none opacity-60" : ""
-          }`}
+        className={`relative transition-opacity duration-200 ${
+          isRefetching ? "pointer-events-none opacity-60" : ""
+        }`}
       >
         {isRefetching && (
           <div className="absolute top-3 right-3 z-10">

@@ -147,8 +147,9 @@ export default function CountryTable({ onEdit }: CountryTableProps) {
       </div>
 
       <div
-        className={`relative transition-opacity duration-200 ${isRefetching ? "pointer-events-none opacity-60" : ""
-          }`}
+        className={`relative transition-opacity duration-200 ${
+          isRefetching ? "pointer-events-none opacity-60" : ""
+        }`}
       >
         {isRefetching && (
           <div className="absolute top-3 right-3 z-10">

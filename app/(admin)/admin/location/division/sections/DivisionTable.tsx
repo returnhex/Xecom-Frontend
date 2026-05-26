@@ -154,8 +154,9 @@ export default function DivisionTable({ onEdit }: DivisionTableProps) {
         {/* Country Filter */}
 
         <div
-          className={`max-w-64 min-w-44 ${selectedCountry?.length ? "[&_button]:border-primary [&_button]:bg-primary/5" : ""
-            }`}
+          className={`max-w-64 min-w-44 ${
+            selectedCountry?.length ? "[&_button]:border-primary [&_button]:bg-primary/5" : ""
+          }`}
         >
           <CustomSelect
             endpoint={`${API_URL}/country`}
@@ -179,8 +180,9 @@ export default function DivisionTable({ onEdit }: DivisionTableProps) {
       {/* -------- Table -------- */}
 
       <div
-        className={`relative transition-opacity duration-200 ${isRefetching ? "pointer-events-none opacity-60" : ""
-          }`}
+        className={`relative transition-opacity duration-200 ${
+          isRefetching ? "pointer-events-none opacity-60" : ""
+        }`}
       >
         {isRefetching && (
           <div className="absolute top-3 right-3 z-10">

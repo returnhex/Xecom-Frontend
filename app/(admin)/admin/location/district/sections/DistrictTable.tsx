@@ -151,8 +151,9 @@ export default function DistrictTable({ onEdit }: DistrictTableProps) {
           <div className="flex items-center gap-x-4">
             {/* Country Filter */}
             <div
-              className={`max-w-64 min-w-44 ${selectedCountry ? "[&_button]:border-primary [&_button]:bg-primary/5" : ""
-                }`}
+              className={`max-w-64 min-w-44 ${
+                selectedCountry ? "[&_button]:border-primary [&_button]:bg-primary/5" : ""
+              }`}
             >
               <CustomSelect
                 endpoint={`${API_URL}/country`}
@@ -177,8 +178,9 @@ export default function DistrictTable({ onEdit }: DistrictTableProps) {
 
             {/* Division Filter */}
             <div
-              className={`max-w-64 min-w-44 ${selectedDivision ? "[&_button]:border-primary [&_button]:bg-primary/5" : ""
-                }`}
+              className={`max-w-64 min-w-44 ${
+                selectedDivision ? "[&_button]:border-primary [&_button]:bg-primary/5" : ""
+              }`}
             >
               <CustomSelect
                 endpoint={`${API_URL}/division`}
@@ -205,8 +207,9 @@ export default function DistrictTable({ onEdit }: DistrictTableProps) {
 
         {/* Table */}
         <div
-          className={`relative transition-opacity duration-200 ${isRefetching ? "pointer-events-none opacity-60" : ""
-            }`}
+          className={`relative transition-opacity duration-200 ${
+            isRefetching ? "pointer-events-none opacity-60" : ""
+          }`}
         >
           {isRefetching && (
             <div className="absolute top-3 right-3 z-10">

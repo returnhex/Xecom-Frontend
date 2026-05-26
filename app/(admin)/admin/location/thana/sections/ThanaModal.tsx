@@ -173,7 +173,9 @@ export default function ThanaModal({ open, onOpenChange, thana }: Props) {
               fields={["id", "name"]}
               extraParams={{
                 ...(selectedCountry?.value ? { countryId: selectedCountry.value.toString() } : {}),
-                ...(selectedDivision?.value ? { divisionId: selectedDivision.value.toString() } : {}),
+                ...(selectedDivision?.value
+                  ? { divisionId: selectedDivision.value.toString() }
+                  : {}),
               }}
               mapToOption={(item) => ({
                 value: item.id,
