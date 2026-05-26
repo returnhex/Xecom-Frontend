@@ -2,9 +2,6 @@
 
 import { useState } from "react";
 import { useGetAllThanasQuery, useDeleteThanaMutation } from "@/redux/features/location/thana.api";
-import { useGetAllCountriesQuery } from "@/redux/features/location/country.api";
-import { useGetAllDivisonQuery } from "@/redux/features/location/division.api";
-import { useGetAllDistrictQuery } from "@/redux/features/location/district.api";
 
 import {
   Table,
@@ -19,18 +16,11 @@ import {
 } from "@/components/ui/table";
 
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 import { TThana } from "@/types/location.type";
 import { TablePagination } from "@/components/custom/TablePagination";
 import { SortableTableHead } from "@/components/custom/SortableTableHead";
-import { X, Pencil, Trash2, Search } from "lucide-react";
+import { Loader2, Pencil, Trash2, Search } from "lucide-react";
 import { useTableSort } from "@/hooks/useTableSort";
 import { useTablePagination } from "@/hooks/useTablePagination";
 import { toast } from "sonner";
@@ -58,10 +48,10 @@ interface ThanaTableProps {
 }
 
 export default function ThanaTable({ onEdit }: ThanaTableProps) {
-  const [selectedCountry, setSelectedCountry] = useState<SelectOption[]>([]);
-  const [selectedDivision, setSelectedDivision] = useState<SelectOption[]>([]);
+  const [selectedCountry, setSelectedCountry] = useState<SelectOption | null>(null);
+  const [selectedDivision, setSelectedDivision] = useState<SelectOption | null>(null);
 
-  const [selectedDistrict, setSelectedDistrict] = useState<SelectOption[]>([]);
+  const [selectedDistrict, setSelectedDistrict] = useState<SelectOption | null>(null);
 
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -75,32 +65,6 @@ export default function ThanaTable({ onEdit }: ThanaTableProps) {
   const { handlePageChange, handlePageSizeChange, getPaginationParams, resetPage } =
     useTablePagination({ initialPageNumber: 1, initialPageSize: 10 });
 
-  const { data: countryData } = useGetAllCountriesQuery([]);
-  const countries = countryData?.data || [];
-
-  const { data: divisionData } = useGetAllDivisonQuery([]);
-  const divisions = divisionData?.data || [];
-
-  const { data: districtData } = useGetAllDistrictQuery([]);
-  const districts = districtData?.data || [];
-
-  const getDistrict = (districtId: string) =>
-    districts.find((d) => String(d.id) === String(districtId));
-
-  const getDivision = (districtId: string) => {
-    const district = getDistrict(districtId);
-    return divisions.find((div) => div.id === district?.divisionId);
-  };
-
-  const getCountry = (districtId: string) => {
-    const division = getDivision(districtId);
-    return countries.find((c) => c.id === division?.countryId);
-  };
-
-  const getDistrictName = (districtId: string) => getDistrict(districtId)?.name || "N/A";
-  const getDivisionName = (districtId: string) => getDivision(districtId)?.name || "N/A";
-  const getCountryName = (districtId: string) => getCountry(districtId)?.name || "N/A";
-
   // Debounce search term to avoid excessive API calls
   const debouncedSearchTerm = useDebounce(searchTerm);
 
@@ -112,29 +76,29 @@ export default function ThanaTable({ onEdit }: ThanaTableProps) {
       params.push({ name: "searchTerm", value: debouncedSearchTerm });
     }
 
-    // single object handle
-    if (selectedCountry && "value" in selectedCountry) {
+    if (selectedCountry?.value) {
       params.push({ name: "countryId", value: selectedCountry.value.toString() });
     }
 
-    if (selectedDivision && "value" in selectedDivision) {
+    if (selectedDivision?.value) {
       params.push({ name: "divisionId", value: selectedDivision.value.toString() });
     }
-    if (selectedDistrict && "value" in selectedDistrict) {
+    if (selectedDistrict?.value) {
       params.push({ name: "districtId", value: selectedDistrict.value.toString() });
     }
 
     return params;
   };
 
-  const { data, isLoading, isError } = useGetAllThanasQuery(buildQueryParams());
+  const { data, isLoading, isFetching, isError } = useGetAllThanasQuery(buildQueryParams());
   const thanas = data?.data || [];
   const hasNoData = thanas.length === 0 && !isLoading;
+  const isRefetching = isFetching && !isLoading;
 
   const clearFilters = () => {
-    setSelectedCountry([]);
-    setSelectedDivision([]);
-    setSelectedDistrict([]);
+    setSelectedCountry(null);
+    setSelectedDivision(null);
+    setSelectedDistrict(null);
     resetPage();
   };
 
@@ -188,154 +152,170 @@ export default function ThanaTable({ onEdit }: ThanaTableProps) {
         <div className="flex items-center gap-x-4">
           {/* Country Filter */}
           <div
-            className={`max-w-64 min-w-44 ${
-              selectedCountry?.length ? "[&_button]:border-primary [&_button]:bg-primary/5" : ""
-            }`}
+            className={`max-w-64 min-w-44 ${selectedCountry ? "[&_button]:border-primary [&_button]:bg-primary/5" : ""
+              }`}
           >
             <CustomSelect
               endpoint={`${API_URL}/country`}
-              fields={["name", "id"]}
+              fields={["id", "name"]}
               mapToOption={(item) => ({
                 value: item.id,
                 label: item.name,
               })}
               value={selectedCountry}
-              onChange={(vals) => {
-                setSelectedCountry(vals as SelectOption[]);
+              onChange={(val) => {
+                const option = val as SelectOption | null;
+                setSelectedCountry(option);
+                setSelectedDivision(null);
+                setSelectedDistrict(null);
                 handleFilterChange();
               }}
               searchable
               paginated
+              loadingStyle="eager"
               placeholder="All Countries"
             />
           </div>
 
-          {/* division Filter */}
+          {/* Division Filter */}
           <div
-            className={`max-w-64 min-w-44 ${
-              selectedDivision?.length ? "[&_button]:border-primary [&_button]:bg-primary/5" : ""
-            }`}
+            className={`max-w-64 min-w-44 ${selectedDivision ? "[&_button]:border-primary [&_button]:bg-primary/5" : ""
+              }`}
           >
             <CustomSelect
               endpoint={`${API_URL}/division`}
-              fields={["name", "id"]}
+              fields={["id", "name"]}
+              extraParams={{ countryId: selectedCountry?.value?.toString() || "" }}
               mapToOption={(item) => ({
                 value: item.id,
                 label: item.name,
               })}
               value={selectedDivision}
-              onChange={(vals) => {
-                setSelectedDivision(vals as SelectOption[]);
+              onChange={(val) => {
+                const option = val as SelectOption | null;
+                setSelectedDivision(option);
+                setSelectedDistrict(null);
                 handleFilterChange();
               }}
               searchable
               paginated
+              loadingStyle="eager"
               placeholder="All Divisions"
             />
           </div>
           <div
-            className={`max-w-64 min-w-44 ${
-              selectedDivision?.length ? "[&_button]:border-primary [&_button]:bg-primary/5" : ""
-            }`}
+            className={`max-w-64 min-w-44 ${selectedDistrict ? "[&_button]:border-primary [&_button]:bg-primary/5" : ""
+              }`}
           >
             <CustomSelect
               endpoint={`${API_URL}/district`}
-              fields={["name", "id"]}
+              fields={["id", "name"]}
+              extraParams={{
+                ...(selectedCountry?.value ? { countryId: selectedCountry.value.toString() } : {}),
+                ...(selectedDivision?.value ? { divisionId: selectedDivision.value.toString() } : {}),
+              }}
               mapToOption={(item) => ({
                 value: item.id,
                 label: item.name,
               })}
               value={selectedDistrict}
-              onChange={(vals) => {
-                setSelectedDistrict(vals as SelectOption[]);
+              onChange={(val) => {
+                const option = val as SelectOption | null;
+                setSelectedDistrict(option);
                 handleFilterChange();
               }}
               searchable
               paginated
-              placeholder="All District"
+              loadingStyle="eager"
+              placeholder="All Districts"
             />
           </div>
         </div>
       </div>
 
       {/* Table */}
-      <div className="border-border rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <SortableTableHead
-                field="name"
-                label="Thana Name"
-                onSort={handleSortClick}
-                getSortIcon={getSortIcon}
-                disabled={hasNoData}
-              />
-              <TableHead>Country</TableHead>
-              <TableHead>Division</TableHead>
-              <TableHead>District</TableHead>
-              <TableHead className="w-24 text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-
-          <TableBody>
-            {isLoading ? (
-              <TableLoading colSpan={5} rows={5} />
-            ) : isError ? (
-              <TableError colSpan={5}>Error loading thana. Please try again.</TableError>
-            ) : thanas.length === 0 ? (
-              <TableEmpty colSpan={5}>No thana found</TableEmpty>
-            ) : (
-              thanas.map((thana: TThana) => (
-                <TableRow key={thana.id}>
-                  <TableCell className="font-medium">{thana.name}</TableCell>
-                  <TableCell>{getCountryName(thana.districtId)}</TableCell>
-                  <TableCell>{getDivisionName(thana.districtId)}</TableCell>
-                  <TableCell>{getDistrictName(thana.districtId)}</TableCell>
-                  <TableCell>
-                    <div className="flex justify-end gap-2">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => onEdit(thana)}
-                            className="hover:bg-primary/10 hover:text-primary h-8 w-8"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Edit</TooltipContent>
-                      </Tooltip>
-
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDeleteClick(thana)}
-                            className="hover:bg-destructive/10 hover:text-destructive h-8 w-8"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Delete</TooltipContent>
-                      </Tooltip>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-
-        {data?.meta && (
-          <TablePagination
-            meta={data.meta}
-            onPageChange={handlePageChange}
-            onPageSizeChange={handlePageSizeChange}
-            disabled={hasNoData}
-          />
+      <div
+        className={`relative transition-opacity duration-200 ${isRefetching ? "pointer-events-none opacity-60" : ""
+          }`}
+      >
+        {isRefetching && (
+          <div className="absolute top-3 right-3 z-10">
+            <Loader2 className="text-primary h-5 w-5 animate-spin" />
+          </div>
         )}
+
+        <div className="border-border rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <SortableTableHead
+                  field="name"
+                  label="Thana Name"
+                  onSort={handleSortClick}
+                  getSortIcon={getSortIcon}
+                  disabled={hasNoData}
+                />
+                <TableHead className="w-24 text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+
+            <TableBody>
+              {isLoading ? (
+                <TableLoading colSpan={2} rows={5} />
+              ) : isError ? (
+                <TableError colSpan={2}>Error loading thana. Please try again.</TableError>
+              ) : thanas.length === 0 ? (
+                <TableEmpty colSpan={2}>No thana found</TableEmpty>
+              ) : (
+                thanas.map((thana: TThana) => (
+                  <TableRow key={thana.id}>
+                    <TableCell className="font-medium">{thana.name}</TableCell>
+                    <TableCell>
+                      <div className="flex justify-end gap-2">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => onEdit(thana)}
+                              className="hover:bg-primary/10 hover:text-primary h-8 w-8"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Edit</TooltipContent>
+                        </Tooltip>
+
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDeleteClick(thana)}
+                              className="hover:bg-destructive/10 hover:text-destructive h-8 w-8"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Delete</TooltipContent>
+                        </Tooltip>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+
+          {data?.meta && (
+            <TablePagination
+              meta={data.meta}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+              disabled={hasNoData}
+            />
+          )}
+        </div>
       </div>
 
       {/* Delete Confirmation Dialog */}

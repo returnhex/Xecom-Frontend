@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import {
   useGetAllDivisonQuery,
   useDeleteDivisionMutation,
 } from "@/redux/features/location/division.api";
-
 import {
   Table,
   TableBody,
@@ -17,22 +16,16 @@ import {
   TableLoading,
   TableError,
 } from "@/components/ui/table";
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
 import { TDivision } from "@/types/location.type";
 import { TablePagination } from "@/components/custom/TablePagination";
 import { SortableTableHead } from "@/components/custom/SortableTableHead";
-
-import { Pencil, Trash2, Search } from "lucide-react";
-
+import { Loader2, Pencil, Trash2, Search } from "lucide-react";
 import { useTableSort } from "@/hooks/useTableSort";
 import { useTablePagination } from "@/hooks/useTablePagination";
 import { useDebounce } from "@/hooks/useDebounce";
-
 import { toast } from "sonner";
-
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,9 +36,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-
 import CustomSelect, { SelectOption } from "@/components/custom/CustomSelect";
-
 import { API_URL } from "@/redux/api/baseApi";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -105,18 +96,18 @@ export default function DivisionTable({ onEdit }: DivisionTableProps) {
       params.push({ name: "searchTerm", value: debouncedSearchTerm });
     }
 
-    // single object handle
-    if (selectedCountry && "value" in selectedCountry) {
-      params.push({ name: "countryId", value: selectedCountry.value.toString() });
+    if (selectedCountry?.[0]?.value) {
+      params.push({ name: "countryId", value: selectedCountry[0].value.toString() });
     }
 
     return params;
   };
-  const { data, isLoading, isError } = useGetAllDivisonQuery(buildQueryParams());
+  const { data, isLoading, isFetching, isError } = useGetAllDivisonQuery(buildQueryParams());
 
   const divisions = data?.data || [];
 
   const hasNoData = divisions.length === 0 && !isLoading;
+  const isRefetching = isFetching && !isLoading;
 
   /* ---------------- Delete ---------------- */
 
@@ -163,9 +154,8 @@ export default function DivisionTable({ onEdit }: DivisionTableProps) {
         {/* Country Filter */}
 
         <div
-          className={`max-w-64 min-w-44 ${
-            selectedCountry?.length ? "[&_button]:border-primary [&_button]:bg-primary/5" : ""
-          }`}
+          className={`max-w-64 min-w-44 ${selectedCountry?.length ? "[&_button]:border-primary [&_button]:bg-primary/5" : ""
+            }`}
         >
           <CustomSelect
             endpoint={`${API_URL}/country`}
@@ -188,86 +178,97 @@ export default function DivisionTable({ onEdit }: DivisionTableProps) {
 
       {/* -------- Table -------- */}
 
-      <div className="border-border rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <SortableTableHead
-                field="name"
-                label="Division Name"
-                onSort={handleSortClick}
-                getSortIcon={getSortIcon}
-                disabled={hasNoData}
-              />
-
-              <TableHead className="w-24">Total Districts</TableHead>
-
-              <TableHead className="w-24">Total Thanas</TableHead>
-
-              <TableHead className="w-24 text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-
-          <TableBody>
-            {isLoading ? (
-              <TableLoading colSpan={4} rows={5} />
-            ) : isError ? (
-              <TableError colSpan={4}>Error loading division.</TableError>
-            ) : divisions.length === 0 ? (
-              <TableEmpty colSpan={4}>No division found</TableEmpty>
-            ) : (
-              divisions.map((division: TDivision) => (
-                <TableRow key={division.id}>
-                  <TableCell className="font-medium">{division.name}</TableCell>
-
-                  <TableCell>{division._count?.districts ?? 0}</TableCell>
-
-                  <TableCell>{division._count?.thanas ?? 0}</TableCell>
-
-                  <TableCell>
-                    <div className="flex justify-end gap-2">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => onEdit(division)}
-                            className="hover:bg-primary/10 hover:text-primary h-8 w-8"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Edit</TooltipContent>
-                      </Tooltip>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDeleteClick(division)}
-                            className="hover:bg-destructive/10 hover:text-destructive h-8 w-8"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Delete</TooltipContent>
-                      </Tooltip>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-
-        {data?.meta && (
-          <TablePagination
-            meta={data.meta}
-            onPageChange={handlePageChange}
-            onPageSizeChange={handlePageSizeChange}
-            disabled={hasNoData}
-          />
+      <div
+        className={`relative transition-opacity duration-200 ${isRefetching ? "pointer-events-none opacity-60" : ""
+          }`}
+      >
+        {isRefetching && (
+          <div className="absolute top-3 right-3 z-10">
+            <Loader2 className="text-primary h-5 w-5 animate-spin" />
+          </div>
         )}
+
+        <div className="border-border rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <SortableTableHead
+                  field="name"
+                  label="Division Name"
+                  onSort={handleSortClick}
+                  getSortIcon={getSortIcon}
+                  disabled={hasNoData}
+                />
+
+                <TableHead className="w-24">Total Districts</TableHead>
+
+                <TableHead className="w-24">Total Thanas</TableHead>
+
+                <TableHead className="w-24 text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+
+            <TableBody>
+              {isLoading ? (
+                <TableLoading colSpan={4} rows={5} />
+              ) : isError ? (
+                <TableError colSpan={4}>Error loading division.</TableError>
+              ) : divisions.length === 0 ? (
+                <TableEmpty colSpan={4}>No division found</TableEmpty>
+              ) : (
+                divisions.map((division: TDivision) => (
+                  <TableRow key={division.id}>
+                    <TableCell className="font-medium">{division.name}</TableCell>
+
+                    <TableCell>{division._count?.districts ?? 0}</TableCell>
+
+                    <TableCell>{division._count?.thanas ?? 0}</TableCell>
+
+                    <TableCell>
+                      <div className="flex justify-end gap-2">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => onEdit(division)}
+                              className="hover:bg-primary/10 hover:text-primary h-8 w-8"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Edit</TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDeleteClick(division)}
+                              className="hover:bg-destructive/10 hover:text-destructive h-8 w-8"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Delete</TooltipContent>
+                        </Tooltip>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+
+          {data?.meta && (
+            <TablePagination
+              meta={data.meta}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+              disabled={hasNoData}
+            />
+          )}
+        </div>
       </div>
 
       {/* -------- Delete Dialog -------- */}

@@ -18,7 +18,7 @@ export interface CustomSelectProps {
     fields?: string[];
   }) => Promise<{ data: SelectOption[]; hasMore: boolean; meta?: any }>;
   fields?: string[];
-  extraParams?: Record<string, string | number>; // ← NEW
+  extraParams?: Record<string, string | number>;
   mapToOption?: (item: any) => SelectOption;
   value?: SelectOption | SelectOption[] | null;
   onChange?: (value: SelectOption | SelectOption[] | null) => void;
@@ -30,13 +30,14 @@ export interface CustomSelectProps {
   className?: string;
   label?: string;
   error?: string;
+  loadingStyle?: "lazy" | "eager";
 }
 
 export const CustomSelect = ({
   endpoint,
   fetchOptions,
   fields,
-  extraParams = {}, // ← NEW
+  extraParams = {},
   mapToOption,
   value,
   onChange,
@@ -48,6 +49,7 @@ export const CustomSelect = ({
   className = "",
   label,
   error,
+  loadingStyle = "lazy",
 }: CustomSelectProps) => {
   const uid = useId();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -88,22 +90,36 @@ export const CustomSelect = ({
           });
         } else if (endpoint) {
           const params = new URLSearchParams();
+
+          // Add pagination params first
           if (paginated) {
             params.append("pageNumber", p.toString());
             params.append("pageSize", "20");
           }
+
+          // Add search term if present
           if (q) params.append("searchTerm", q);
+
+          // Add fields
           if (fields && fields.length > 0) {
             fields.forEach((field) => params.append("fields", field));
           }
 
-          // ← NEW: extraParams prop থেকে append করো
-          Object.entries(extraParams).forEach(([k, v]) => params.set(k, String(v)));
+          // Add extraParams (these override pagination/fields if conflicts)
+          Object.entries(extraParams).forEach(([k, v]) => {
+            if (v !== "" && v !== null && v !== undefined) {
+              params.set(k, String(v));
+            }
+          });
 
-          // endpoint URL-এ existing query params থাকলে সেগুলোও append করো
+          // Preserve any existing query params in the endpoint URL
           const [baseUrl, existingQuery] = endpoint.split("?");
           const existingParams = new URLSearchParams(existingQuery || "");
-          existingParams.forEach((v, k) => params.set(k, v));
+          existingParams.forEach((v, k) => {
+            if (!params.has(k)) {
+              params.set(k, v);
+            }
+          });
 
           const url = `${baseUrl}?${params.toString()}`;
           const response = await fetch(url);
@@ -114,10 +130,10 @@ export const CustomSelect = ({
           const mappedData = mapToOption
             ? json.data.map(mapToOption)
             : json.data.map((item: any) => ({
-                value: item.id,
-                label: item.name || item.label,
-                ...item,
-              }));
+              value: item.id,
+              label: item.name || item.label,
+              ...item,
+            }));
 
           const hasMorePages =
             json.meta?.hasNextPage ??
@@ -144,24 +160,36 @@ export const CustomSelect = ({
         loadingRef.current = false;
       }
     },
-    [endpoint, fetchOptions, fields, extraParams, mapToOption, paginated] // ← extraParams added
+    [endpoint, fetchOptions, fields, extraParams, mapToOption, paginated]
   );
 
+  // ← Memoize load function ref to ensure consistent behavior
   const loadRef = useRef(load);
   useEffect(() => {
     loadRef.current = load;
   }, [load]);
 
-  // Re-fetch when dropdown opens
+  // Eager loading on mount
   useEffect(() => {
-    if (open) {
+    if (loadingStyle === "eager") {
+      setSearchTerm("");
+      loadRef.current("", 1, true);
+    }
+  }, [loadingStyle]);
+
+  // Re-fetch when dropdown opens (only for lazy loading)
+  useEffect(() => {
+    if (open && loadingStyle === "lazy") {
       setSearchTerm("");
       loadRef.current("", 1, true);
       if (searchable) setTimeout(() => searchRef.current?.focus(), 50);
+    } else if (open && loadingStyle === "eager") {
+      // For eager loading, just focus the search input if it exists
+      if (searchable) setTimeout(() => searchRef.current?.focus(), 50);
     }
-  }, [open, searchable]);
+  }, [open, searchable, loadingStyle]);
 
-  // endpoint পরিবর্তন হলে reset + re-fetch
+  // Reset when endpoint changes
   const prevEndpointRef = useRef<string | undefined>(undefined);
   useEffect(() => {
     if (prevEndpointRef.current === undefined) {
@@ -182,7 +210,7 @@ export const CustomSelect = ({
     }
   }, [endpoint, open]);
 
-  // ← NEW: extraParams পরিবর্তন হলে reset + re-fetch
+  // Reset when extraParams change - this cascades the filter to subordinate dropdowns
   const extraParamsKey = JSON.stringify(extraParams);
   const prevExtraParamsRef = useRef<string | undefined>(undefined);
   useEffect(() => {
@@ -193,16 +221,22 @@ export const CustomSelect = ({
     if (prevExtraParamsRef.current === extraParamsKey) return;
     prevExtraParamsRef.current = extraParamsKey;
 
+    // Clear options and reset pagination when parent filter params change
     setOptions([]);
     setPageNumber(1);
     setHasMore(true);
     setSearchTerm("");
     loadingRef.current = false;
 
+    // If dropdown is open, refetch with new params immediately
     if (open) {
       loadRef.current("", 1, true);
     }
-  }, [extraParamsKey, open]);
+    // If eager loading, also load immediately even if not open
+    else if (loadingStyle === "eager") {
+      loadRef.current("", 1, true);
+    }
+  }, [extraParamsKey, open, loadingStyle]);
 
   // ── Debounced search ───────────────────────────────────────────────────────
 
@@ -210,10 +244,11 @@ export const CustomSelect = ({
     const q = e.target.value;
     setSearchTerm(q);
     if (debounceRef.current) clearTimeout(debounceRef.current);
+    // Reset to page 1 and search with all current params (fields, extraParams)
     debounceRef.current = setTimeout(() => load(q, 1, true), 300);
   };
 
-  // ── Infinite scroll ────────────────────────────────────────────────────────
+  // ── Infinite scroll pagination ────────────────────────────────────────────
 
   const handleScroll = useCallback(() => {
     if (!paginated || !listRef.current || loadingRef.current || !hasMore) return;
@@ -221,6 +256,7 @@ export const CustomSelect = ({
     const el = listRef.current;
     const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
 
+    // When near bottom, fetch next page with current search term and all params
     if (distanceFromBottom < 100) {
       load(searchTerm, pageNumber + 1, false);
     }
@@ -326,9 +362,8 @@ export const CustomSelect = ({
         )}
 
         <ChevronDown
-          className={`text-muted-foreground h-4 w-4 shrink-0 transition-transform duration-200 ${
-            open ? "rotate-180" : ""
-          }`}
+          className={`text-muted-foreground h-4 w-4 shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""
+            }`}
         />
       </button>
 
@@ -338,7 +373,7 @@ export const CustomSelect = ({
       {open && (
         <div
           className={[
-            "bg-popover absolute z-50 mt-1.5 w-full rounded-md border shadow-lg",
+            "bg-popover absolute z-20 mt-1.5 w-full rounded-md border shadow-lg",
             "animate-in fade-in-0 zoom-in-95 slide-in-from-top-1",
           ].join(" ")}
         >

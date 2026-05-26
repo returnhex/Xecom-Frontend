@@ -23,7 +23,7 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
     // }
 
     // If allowed roles are specified and user's role is not in the list, redirect to home
-    if (allowedRoles && allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
+    if (user && allowedRoles && allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
       router.push("/");
     }
   }, [user, allowedRoles, router]);

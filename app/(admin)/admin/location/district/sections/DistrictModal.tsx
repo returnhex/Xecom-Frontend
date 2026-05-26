@@ -10,8 +10,6 @@ import {
   useAddDistrictMutation,
   useUpdateDistrictMutation,
 } from "@/redux/features/location/district.api";
-import { useGetAllCountriesQuery } from "@/redux/features/location/country.api";
-import { useGetAllDivisonQuery } from "@/redux/features/location/division.api";
 
 import { TDistrict } from "@/types/location.type";
 import { API_URL } from "@/redux/api/baseApi";
@@ -44,7 +42,6 @@ export default function DistrictModal({ open, onOpenChange, district }: Props) {
     handleSubmit,
     reset,
     setValue,
-    watch,
     formState: { errors },
   } = useForm<TDistrictFormData>({
     resolver: zodResolver(districtSchema),
@@ -57,36 +54,24 @@ export default function DistrictModal({ open, onOpenChange, district }: Props) {
   const [addDistrict, { isLoading: isAdding }] = useAddDistrictMutation();
   const [updateDistrict, { isLoading: isUpdating }] = useUpdateDistrictMutation();
 
-  const { data: countryData } = useGetAllCountriesQuery([]);
-  const countries = countryData?.data || [];
-
-  const { data: divisionData } = useGetAllDivisonQuery([]);
-  const divisions = divisionData?.data || [];
-
-  const [selectedCountry, setSelectedCountry] = useState<SelectOption[]>([]);
-  const [selectedDivision, setSelectedDivision] = useState<SelectOption[]>([]);
+  const [selectedCountry, setSelectedCountry] = useState<SelectOption | null>(null);
+  const [selectedDivision, setSelectedDivision] = useState<SelectOption | null>(null);
 
   // Prefill form on edit
   useEffect(() => {
     if (district && open) {
       setValue("name", district.name);
       setValue("divisionId", district.divisionId);
-
-      // Set country only for display
-      const division = divisions.find((d) => d.id === district.divisionId);
-      const country = countries.find((c) => c.id === division?.countryId);
-      setSelectedCountry(country ? [{ value: country.id, label: country.name }] : []);
-
-      const divisionOption = divisions.find((d) => d.id === district.divisionId);
-      setSelectedDivision(
-        divisionOption ? [{ value: divisionOption.id, label: divisionOption.name }] : []
-      );
+      setSelectedDivision({
+        value: district.divisionId,
+        label: district.divisionId,
+      });
     } else {
       reset();
-      setSelectedCountry([]);
-      setSelectedDivision([]);
+      setSelectedCountry(null);
+      setSelectedDivision(null);
     }
-  }, [district, open, countries, divisions, setValue, reset]); // countries, divisions, setValue, reset
+  }, [district, open, setValue, reset]);
 
   const onSubmit = async (data: TDistrictFormData) => {
     try {
@@ -95,7 +80,7 @@ export default function DistrictModal({ open, onOpenChange, district }: Props) {
           id: district.id,
           data: {
             id: district.id,
-            name: district.name,
+            name: data.name,
             divisionId: data.divisionId,
           },
         }).unwrap();
@@ -105,16 +90,13 @@ export default function DistrictModal({ open, onOpenChange, district }: Props) {
         toast.success("District added successfully");
       }
       reset();
-      setSelectedCountry([]);
-      setSelectedDivision([]);
+      setSelectedCountry(null);
+      setSelectedDivision(null);
       onOpenChange(false);
     } catch (error: any) {
       toast.error(error?.data?.message || "Failed to save district");
     }
   };
-
-  // Filter divisions by selected country (for display)
-  const filteredDivisions = divisions.filter((d) => d.countryId === selectedCountry[0]?.value);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -125,21 +107,23 @@ export default function DistrictModal({ open, onOpenChange, district }: Props) {
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {/* Country Display */}
+          {/* Country Select */}
           <div>
             <Label>Country</Label>
             <CustomSelect
               endpoint={`${API_URL}/country`}
+              fields={["id", "name"]}
               mapToOption={(item) => ({ value: item.id, label: item.name })}
               value={selectedCountry}
-              onChange={(vals) => {
-                const selected = vals ? (Array.isArray(vals) ? vals : [vals]) : [];
-                setSelectedCountry(selected);
-                setSelectedDivision([]);
+              onChange={(val) => {
+                const option = val as SelectOption | null;
+                setSelectedCountry(option);
+                setSelectedDivision(null);
                 setValue("divisionId", "");
               }}
               searchable
               paginated
+              loadingStyle="eager"
               placeholder="Select Country"
             />
           </div>
@@ -149,23 +133,22 @@ export default function DistrictModal({ open, onOpenChange, district }: Props) {
             <Label>Division *</Label>
             <CustomSelect
               endpoint={`${API_URL}/division`}
-              extraParams={
-                selectedCountry[0]?.value ? { countryId: String(selectedCountry[0].value) } : {}
-              }
+              fields={["id", "name"]}
+              extraParams={{ countryId: selectedCountry?.value?.toString() || "" }}
               mapToOption={(item) => ({
-                value: String(item.id),
+                value: item.id,
                 label: item.name,
               })}
               value={selectedDivision}
-              onChange={(vals) => {
-                const selected = vals ? (Array.isArray(vals) ? vals : [vals]) : [];
-                setSelectedDivision(selected);
-                setValue("divisionId", String(selected[0]?.value ?? ""));
+              onChange={(val) => {
+                const option = val as SelectOption | null;
+                setSelectedDivision(option);
+                setValue("divisionId", option?.value?.toString() || "");
               }}
               searchable
               paginated
+              loadingStyle="eager"
               placeholder="Select Division"
-              disabled={!selectedCountry[0]?.value}
             />
             {errors.divisionId && (
               <p className="text-destructive text-sm">{errors.divisionId.message}</p>

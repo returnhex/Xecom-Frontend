@@ -9,10 +9,6 @@ import { thanatSchema, TThanaFormData } from "@/lib/thana.schema";
 
 import { useAddThanaMutation, useUpdateThanaMutation } from "@/redux/features/location/thana.api";
 
-import { useGetAllCountriesQuery } from "@/redux/features/location/country.api";
-import { useGetAllDivisonQuery } from "@/redux/features/location/division.api";
-import { useGetAllDistrictQuery } from "@/redux/features/location/district.api";
-
 import { TThana } from "@/types/location.type";
 
 import { API_URL } from "@/redux/api/baseApi";
@@ -59,40 +55,26 @@ export default function ThanaModal({ open, onOpenChange, thana }: Props) {
   const [addThana, { isLoading: isAdding }] = useAddThanaMutation();
   const [updateThana, { isLoading: isUpdating }] = useUpdateThanaMutation();
 
-  const { data: countryData } = useGetAllCountriesQuery([]);
-  const { data: divisionData } = useGetAllDivisonQuery([]);
-  const { data: districtData } = useGetAllDistrictQuery([]);
-
-  const countries = countryData?.data || [];
-  const divisions = divisionData?.data || [];
-  const districts = districtData?.data || [];
-
-  const [selectedCountry, setSelectedCountry] = useState<SelectOption[]>([]);
-  const [selectedDivision, setSelectedDivision] = useState<SelectOption[]>([]);
-  const [selectedDistrict, setSelectedDistrict] = useState<SelectOption[]>([]);
+  const [selectedCountry, setSelectedCountry] = useState<SelectOption | null>(null);
+  const [selectedDivision, setSelectedDivision] = useState<SelectOption | null>(null);
+  const [selectedDistrict, setSelectedDistrict] = useState<SelectOption | null>(null);
 
   // Prefill edit
   useEffect(() => {
     if (thana && open) {
       setValue("name", thana.name);
       setValue("districtId", String(thana.districtId));
-
-      const district = districts.find((d) => String(d.id) === String(thana.districtId));
-      const division = divisions.find((d) => String(d.id) === String(district?.divisionId));
-      const country = countries.find((c) => String(c.id) === String(division?.countryId));
-
-      setSelectedCountry(country ? [{ value: String(country.id), label: country.name }] : []);
-
-      setSelectedDivision(division ? [{ value: String(division.id), label: division.name }] : []);
-
-      setSelectedDistrict(district ? [{ value: String(district.id), label: district.name }] : []);
+      setSelectedDistrict({
+        value: String(thana.districtId),
+        label: String(thana.districtId),
+      });
     } else {
       reset();
-      setSelectedCountry([]);
-      setSelectedDivision([]);
-      setSelectedDistrict([]);
+      setSelectedCountry(null);
+      setSelectedDivision(null);
+      setSelectedDistrict(null);
     }
-  }, [thana, open, countries, divisions, districts, setValue, reset]);
+  }, [thana, open, setValue, reset]);
 
   const onSubmit = async (data: TThanaFormData) => {
     try {
@@ -136,20 +118,22 @@ export default function ThanaModal({ open, onOpenChange, thana }: Props) {
 
             <CustomSelect
               endpoint={`${API_URL}/country`}
+              fields={["id", "name"]}
               mapToOption={(item) => ({
-                value: String(item.id),
+                value: item.id,
                 label: item.name,
               })}
               value={selectedCountry}
-              onChange={(vals) => {
-                const selected = vals ? (Array.isArray(vals) ? vals : [vals]) : [];
-                setSelectedCountry(selected);
-                setSelectedDivision([]);
-                setSelectedDistrict([]);
+              onChange={(val) => {
+                const option = val as SelectOption | null;
+                setSelectedCountry(option);
+                setSelectedDivision(null);
+                setSelectedDistrict(null);
                 setValue("districtId", "");
               }}
               searchable
               paginated
+              loadingStyle="eager"
               placeholder="Select Country"
             />
           </div>
@@ -160,24 +144,23 @@ export default function ThanaModal({ open, onOpenChange, thana }: Props) {
 
             <CustomSelect
               endpoint={`${API_URL}/division`}
-              extraParams={
-                selectedCountry[0]?.value ? { countryId: String(selectedCountry[0].value) } : {}
-              }
+              fields={["id", "name"]}
+              extraParams={{ countryId: selectedCountry?.value?.toString() || "" }}
               mapToOption={(item) => ({
-                value: String(item.id),
+                value: item.id,
                 label: item.name,
               })}
               value={selectedDivision}
-              onChange={(vals) => {
-                const selected = vals ? (Array.isArray(vals) ? vals : [vals]) : [];
-                setSelectedDivision(selected);
-                setSelectedDistrict([]);
+              onChange={(val) => {
+                const option = val as SelectOption | null;
+                setSelectedDivision(option);
+                setSelectedDistrict(null);
                 setValue("districtId", "");
               }}
               searchable
               paginated
+              loadingStyle="eager"
               placeholder="Select Division"
-              disabled={!selectedCountry[0]?.value}
             />
           </div>
 
@@ -187,30 +170,25 @@ export default function ThanaModal({ open, onOpenChange, thana }: Props) {
 
             <CustomSelect
               endpoint={`${API_URL}/district`}
+              fields={["id", "name"]}
               extraParams={{
-                ...(selectedCountry[0]?.value
-                  ? { countryId: String(selectedCountry[0].value) }
-                  : {}),
-                ...(selectedDivision[0]?.value
-                  ? { divisionId: String(selectedDivision[0].value) }
-                  : {}),
+                ...(selectedCountry?.value ? { countryId: selectedCountry.value.toString() } : {}),
+                ...(selectedDivision?.value ? { divisionId: selectedDivision.value.toString() } : {}),
               }}
               mapToOption={(item) => ({
-                value: String(item.id),
+                value: item.id,
                 label: item.name,
               })}
               value={selectedDistrict}
-              onChange={(vals) => {
-                const selected = vals as SelectOption[];
-
-                setSelectedDistrict(selected);
-
-                setValue("districtId", String(selected[0]?.value ?? ""));
+              onChange={(val) => {
+                const option = val as SelectOption | null;
+                setSelectedDistrict(option);
+                setValue("districtId", option?.value?.toString() || "");
               }}
               searchable
               paginated
+              loadingStyle="eager"
               placeholder="Select District"
-              disabled={!selectedDivision[0]?.value}
             />
 
             {errors.districtId && (

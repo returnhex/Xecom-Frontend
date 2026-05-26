@@ -1,12 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import {
-  useAddCountryMutation,
   useDeleteCountryMutation,
   useGetAllCountriesQuery,
-  useGetSingleCountryQuery,
 } from "@/redux/features/location/country.api";
 
 import {
@@ -20,16 +17,8 @@ import {
   TableLoading,
   TableError,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,7 +32,7 @@ import {
 import { TCountry } from "@/types/location.type";
 import { TablePagination } from "@/components/custom/TablePagination";
 import { SortableTableHead } from "@/components/custom/SortableTableHead";
-import { Search, X, Folder, Pencil, Trash2 } from "lucide-react";
+import { Loader2, Search, Pencil, Trash2 } from "lucide-react";
 import { useTableSort } from "@/hooks/useTableSort";
 import { useTablePagination } from "@/hooks/useTablePagination";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -56,7 +45,7 @@ interface CountryTableProps {
   onEdit: (country: TCountry) => void;
 }
 
-export default function CountryTable({ onEdit }) {
+export default function CountryTable({ onEdit }: CountryTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCountry, setSelectedCountry] = useState("");
 
@@ -93,10 +82,11 @@ export default function CountryTable({ onEdit }) {
     return params;
   };
 
-  const { data, isLoading, isError } = useGetAllCountriesQuery(buildQueryParams());
+  const { data, isLoading, isFetching, isError } = useGetAllCountriesQuery(buildQueryParams());
 
   const countries = data?.data || [];
   const hasNoData = countries.length === 0 && !isLoading;
+  const isRefetching = isFetching && !isLoading;
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
@@ -156,108 +146,101 @@ export default function CountryTable({ onEdit }) {
         </div>
       </div>
 
-      <div className="border-border rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <SortableTableHead
-                field="name"
-                label="Country Name"
-                onSort={handleSortClick}
-                getSortIcon={getSortIcon}
-                disabled={hasNoData}
-              />
-              <TableHead>Total Divisions</TableHead>
-              <TableHead className="w-24">Total Districts</TableHead>
-              <TableHead className="w-32">Total Thanas</TableHead>
-              <TableHead className="w-24 text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableLoading colSpan={5} rows={5} />
-            ) : isError ? (
-              <TableError colSpan={5}>Error loading countries. Please try again.</TableError>
-            ) : countries.length === 0 ? (
-              <TableEmpty colSpan={5}>No country found</TableEmpty>
-            ) : (
-              countries.map((country: TCountry) => (
-                <TableRow key={country.id}>
-                  <TableCell className="font-medium">
-                    {country.code ? (
-                      <p>
-                        {country.name} {`(${country.code})`}
-                      </p>
-                    ) : (
-                      <p>{country.name}</p>
-                    )}
-                  </TableCell>
-                  <TableCell className="font-medium">{country._count?.divisions ?? 0}</TableCell>
-                  <TableCell className="font-medium">{country._count?.districts ?? 0}</TableCell>
-                  <TableCell className="font-medium">{country._count?.thanas ?? 0}</TableCell>
-                  {/* <TableCell>
-                          <span className="text-sm text-muted-foreground line-clamp-2">
-                            {brand.description || "No description"}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={brand.isActive ? "default" : "secondary"}
-                            className={brand.isActive ? "bg-success" : ""}
-                          >
-                            {brand.isActive ? "Active" : "Inactive"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <span className="font-medium">
-                            {brand._count?.products ?? 0}
-                          </span>
-                        </TableCell> */}
-                  {/* <TableCell className="text-center">{brand.sortOrder}</TableCell> */}
-                  <TableCell>
-                    <div className="flex justify-end gap-2">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => onEdit(country)}
-                            className="hover:bg-primary/10 hover:text-primary h-8 w-8"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Edit</TooltipContent>
-                      </Tooltip>
-
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDeleteClick(country)}
-                            className="hover:bg-destructive/10 hover:text-destructive h-8 w-8"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Delete</TooltipContent>
-                      </Tooltip>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-        {data?.meta && (
-          <TablePagination
-            meta={data.meta}
-            onPageChange={handlePageChange}
-            onPageSizeChange={handlePageSizeChange}
-            disabled={hasNoData}
-          />
+      <div
+        className={`relative transition-opacity duration-200 ${isRefetching ? "pointer-events-none opacity-60" : ""
+          }`}
+      >
+        {isRefetching && (
+          <div className="absolute top-3 right-3 z-10">
+            <Loader2 className="text-primary h-5 w-5 animate-spin" />
+          </div>
         )}
+
+        <div className="border-border rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <SortableTableHead
+                  field="name"
+                  label="Country Name"
+                  onSort={handleSortClick}
+                  getSortIcon={getSortIcon}
+                  disabled={hasNoData}
+                />
+                <TableHead>Total Divisions</TableHead>
+                <TableHead className="w-24">Total Districts</TableHead>
+                <TableHead className="w-32">Total Thanas</TableHead>
+                <TableHead className="w-24 text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableLoading colSpan={5} rows={5} />
+              ) : isError ? (
+                <TableError colSpan={5}>Error loading countries. Please try again.</TableError>
+              ) : countries.length === 0 ? (
+                <TableEmpty colSpan={5}>No country found</TableEmpty>
+              ) : (
+                countries.map((country: TCountry) => (
+                  <TableRow key={country.id}>
+                    <TableCell className="font-medium">
+                      {country.code ? (
+                        <p>
+                          {country.name} {`(${country.code})`}
+                        </p>
+                      ) : (
+                        <p>{country.name}</p>
+                      )}
+                    </TableCell>
+                    <TableCell className="font-medium">{country._count?.divisions ?? 0}</TableCell>
+                    <TableCell className="font-medium">{country._count?.districts ?? 0}</TableCell>
+                    <TableCell className="font-medium">{country._count?.thanas ?? 0}</TableCell>
+                    <TableCell>
+                      <div className="flex justify-end gap-2">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => onEdit(country)}
+                              className="hover:bg-primary/10 hover:text-primary h-8 w-8"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Edit</TooltipContent>
+                        </Tooltip>
+
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDeleteClick(country)}
+                              className="hover:bg-destructive/10 hover:text-destructive h-8 w-8"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Delete</TooltipContent>
+                        </Tooltip>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+
+          {data?.meta && (
+            <TablePagination
+              meta={data.meta}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+              disabled={hasNoData}
+            />
+          )}
+        </div>
       </div>
 
       {/* Delete Confirmation Dialog */}

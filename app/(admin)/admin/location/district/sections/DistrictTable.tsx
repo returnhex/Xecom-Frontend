@@ -1,12 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import {
   useGetAllDistrictQuery,
   useDeleteDistrictMutation,
 } from "@/redux/features/location/district.api";
-import { useGetAllCountriesQuery } from "@/redux/features/location/country.api";
-import { useGetAllDivisonQuery } from "@/redux/features/location/division.api";
 
 import {
   Table,
@@ -21,18 +19,11 @@ import {
 } from "@/components/ui/table";
 
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 import { TDistrict } from "@/types/location.type";
 import { TablePagination } from "@/components/custom/TablePagination";
 import { SortableTableHead } from "@/components/custom/SortableTableHead";
-import { X, Pencil, Trash2, Search } from "lucide-react";
+import { Loader2, Pencil, Trash2, Search } from "lucide-react";
 import { useTableSort } from "@/hooks/useTableSort";
 import { useTablePagination } from "@/hooks/useTablePagination";
 import { toast } from "sonner";
@@ -61,8 +52,8 @@ interface DistrictTableProps {
 }
 
 export default function DistrictTable({ onEdit }: DistrictTableProps) {
-  const [selectedCountry, setSelectedCountry] = useState<SelectOption[]>([]);
-  const [selectedDivision, setSelectedDivision] = useState<SelectOption[]>([]);
+  const [selectedCountry, setSelectedCountry] = useState<SelectOption | null>(null);
+  const [selectedDivision, setSelectedDivision] = useState<SelectOption | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
   const { handleSort, getSortIcon, getSortParams } = useTableSort<SortableFields>();
@@ -73,23 +64,6 @@ export default function DistrictTable({ onEdit }: DistrictTableProps) {
 
   const { handlePageChange, handlePageSizeChange, getPaginationParams, resetPage } =
     useTablePagination({ initialPageNumber: 1, initialPageSize: 10 });
-
-  const { data: countryData } = useGetAllCountriesQuery([]);
-  const countries = countryData?.data || [];
-
-  const { data: divisionData } = useGetAllDivisonQuery([]);
-  const divisions = divisionData?.data || [];
-
-  const getDivisionName = (divisionId: string) => {
-    const division = divisions.find((d: any) => String(d.id) === String(divisionId));
-    return division?.name || "N/A";
-  };
-
-  const getCountryName = (divisionId: string) => {
-    const division = divisions.find((d: any) => String(d.id) === String(divisionId));
-    const country = countries.find((c: any) => String(c.id) === String(division?.countryId));
-    return country?.name || "N/A";
-  };
 
   // Debounce search term to avoid excessive API calls
   const debouncedSearchTerm = useDebounce(searchTerm);
@@ -102,22 +76,22 @@ export default function DistrictTable({ onEdit }: DistrictTableProps) {
       params.push({ name: "searchTerm", value: debouncedSearchTerm });
     }
 
-    // single object handle
-    if (selectedCountry && "value" in selectedCountry) {
+    if (selectedCountry?.value) {
       params.push({ name: "countryId", value: selectedCountry.value.toString() });
     }
 
-    if (selectedDivision && "value" in selectedDivision) {
+    if (selectedDivision?.value) {
       params.push({ name: "divisionId", value: selectedDivision.value.toString() });
     }
 
     return params;
   };
 
-  const { data, isLoading, isError } = useGetAllDistrictQuery(buildQueryParams());
+  const { data, isLoading, isFetching, isError } = useGetAllDistrictQuery(buildQueryParams());
 
   const districts = data?.data || [];
   const hasNoData = districts.length === 0 && !isLoading;
+  const isRefetching = isFetching && !isLoading;
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
@@ -129,8 +103,9 @@ export default function DistrictTable({ onEdit }: DistrictTableProps) {
   };
 
   const clearFilters = () => {
-    setSelectedCountry([]);
-    setSelectedDivision([]);
+    setSelectedCountry(null);
+    setSelectedDivision(null);
+    setSearchTerm("");
     resetPage();
   };
 
@@ -176,48 +151,52 @@ export default function DistrictTable({ onEdit }: DistrictTableProps) {
           <div className="flex items-center gap-x-4">
             {/* Country Filter */}
             <div
-              className={`max-w-64 min-w-44 ${
-                selectedCountry?.length ? "[&_button]:border-primary [&_button]:bg-primary/5" : ""
-              }`}
+              className={`max-w-64 min-w-44 ${selectedCountry ? "[&_button]:border-primary [&_button]:bg-primary/5" : ""
+                }`}
             >
               <CustomSelect
                 endpoint={`${API_URL}/country`}
-                fields={["name", "id"]}
+                fields={["id", "name"]}
                 mapToOption={(item) => ({
                   value: item.id,
                   label: item.name,
                 })}
                 value={selectedCountry}
-                onChange={(vals) => {
-                  setSelectedCountry(vals as SelectOption[]);
+                onChange={(val) => {
+                  const option = val as SelectOption | null;
+                  setSelectedCountry(option);
+                  setSelectedDivision(null);
                   handleFilterChange();
                 }}
                 searchable
                 paginated
+                loadingStyle="eager"
                 placeholder="All Countries"
               />
             </div>
 
-            {/* division Filter */}
+            {/* Division Filter */}
             <div
-              className={`max-w-64 min-w-44 ${
-                selectedDivision?.length ? "[&_button]:border-primary [&_button]:bg-primary/5" : ""
-              }`}
+              className={`max-w-64 min-w-44 ${selectedDivision ? "[&_button]:border-primary [&_button]:bg-primary/5" : ""
+                }`}
             >
               <CustomSelect
                 endpoint={`${API_URL}/division`}
-                fields={["name", "id"]}
+                fields={["id", "name"]}
+                extraParams={{ countryId: selectedCountry?.value?.toString() || "" }}
                 mapToOption={(item) => ({
                   value: item.id,
                   label: item.name,
                 })}
                 value={selectedDivision}
-                onChange={(vals) => {
-                  setSelectedDivision(vals as SelectOption[]);
+                onChange={(val) => {
+                  const option = val as SelectOption | null;
+                  setSelectedDivision(option);
                   handleFilterChange();
                 }}
                 searchable
                 paginated
+                loadingStyle="eager"
                 placeholder="All Divisions"
               />
             </div>
@@ -225,83 +204,90 @@ export default function DistrictTable({ onEdit }: DistrictTableProps) {
         </div>
 
         {/* Table */}
-        <div className="border-border rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <SortableTableHead
-                  field="name"
-                  label="District Name"
-                  onSort={handleSortClick}
-                  getSortIcon={getSortIcon}
-                  disabled={hasNoData}
-                />
-                <TableHead>Division</TableHead>
-                <TableHead>Country</TableHead>
-                <TableHead className="w-24">Total Thanas</TableHead>
-                <TableHead className="w-24 text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-
-            <TableBody>
-              {isLoading ? (
-                <TableLoading colSpan={4} rows={5} />
-              ) : isError ? (
-                <TableError colSpan={4}>Error loading District. Please try again.</TableError>
-              ) : districts.length === 0 ? (
-                <TableEmpty colSpan={4}>No District found</TableEmpty>
-              ) : (
-                districts.map((district: TDistrict) => (
-                  <TableRow key={district.id}>
-                    <TableCell className="font-medium">{district.name}</TableCell>
-                    <TableCell>{getDivisionName(district.divisionId)}</TableCell>
-                    <TableCell>{getCountryName(district.divisionId)}</TableCell>
-                    <TableCell>{district._count?.thanas ?? 0}</TableCell>
-                    <TableCell>
-                      <div className="flex justify-end gap-2">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => onEdit(district)}
-                              className="hover:bg-primary/10 hover:text-primary h-8 w-8"
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Edit</TooltipContent>
-                        </Tooltip>
-
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleDeleteClick(district)}
-                              className="hover:bg-destructive/10 hover:text-destructive h-8 w-8"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Delete</TooltipContent>
-                        </Tooltip>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-
-          {data?.meta && (
-            <TablePagination
-              meta={data.meta}
-              onPageChange={handlePageChange}
-              onPageSizeChange={handlePageSizeChange}
-              disabled={hasNoData}
-            />
+        <div
+          className={`relative transition-opacity duration-200 ${isRefetching ? "pointer-events-none opacity-60" : ""
+            }`}
+        >
+          {isRefetching && (
+            <div className="absolute top-3 right-3 z-10">
+              <Loader2 className="text-primary h-5 w-5 animate-spin" />
+            </div>
           )}
+
+          <div className="border-border rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <SortableTableHead
+                    field="name"
+                    label="District Name"
+                    onSort={handleSortClick}
+                    getSortIcon={getSortIcon}
+                    disabled={hasNoData}
+                  />
+                  <TableHead className="w-24">Total Thanas</TableHead>
+                  <TableHead className="w-24 text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                {isLoading ? (
+                  <TableLoading colSpan={3} rows={5} />
+                ) : isError ? (
+                  <TableError colSpan={3}>Error loading District. Please try again.</TableError>
+                ) : districts.length === 0 ? (
+                  <TableEmpty colSpan={3}>No District found</TableEmpty>
+                ) : (
+                  districts.map((district: TDistrict) => (
+                    <TableRow key={district.id}>
+                      <TableCell className="font-medium">{district.name}</TableCell>
+                      <TableCell>{district._count?.thanas ?? 0}</TableCell>
+                      <TableCell>
+                        <div className="flex justify-end gap-2">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => onEdit(district)}
+                                className="hover:bg-primary/10 hover:text-primary h-8 w-8"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Edit</TooltipContent>
+                          </Tooltip>
+
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleDeleteClick(district)}
+                                className="hover:bg-destructive/10 hover:text-destructive h-8 w-8"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Delete</TooltipContent>
+                          </Tooltip>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+
+            {data?.meta && (
+              <TablePagination
+                meta={data.meta}
+                onPageChange={handlePageChange}
+                onPageSizeChange={handlePageSizeChange}
+                disabled={hasNoData}
+              />
+            )}
+          </div>
         </div>
 
         {/* Delete Confirmation Dialog */}

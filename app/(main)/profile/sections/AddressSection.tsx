@@ -1,10 +1,6 @@
 "use client";
 
-import React from "react";
-import { useGetAllCountriesQuery } from "@/redux/features/location/country.api";
-import { useGetAllDivisonQuery } from "@/redux/features/location/division.api";
-import { useGetAllDistrictQuery } from "@/redux/features/location/district.api";
-import { useGetAllThanasQuery } from "@/redux/features/location/thana.api";
+import React, { useState, useEffect } from "react";
 import CustomSelect, { SelectOption } from "@/components/custom/CustomSelect";
 import { API_URL } from "@/redux/api/baseApi";
 import { MapPin, Loader2, Save, Globe, Map, Navigation } from "lucide-react";
@@ -29,35 +25,18 @@ const itemVariants = {
 };
 
 const AddressSection = ({ formData, handleChange, loading, onSubmit }: AddressSectionProps) => {
-  const { data: countries } = useGetAllCountriesQuery(undefined);
+  const [selectedCountry, setSelectedCountry] = useState<SelectOption | null>(null);
+  const [selectedDivision, setSelectedDivision] = useState<SelectOption | null>(null);
+  const [selectedDistrict, setSelectedDistrict] = useState<SelectOption | null>(null);
+  const [selectedThana, setSelectedThana] = useState<SelectOption | null>(null);
 
-  const { data: divisions } = useGetAllDivisonQuery(
-    [{ name: "countryId", value: formData.country }],
-    {
-      skip: !formData.country,
-    }
-  );
-
-  const { data: districts } = useGetAllDistrictQuery(
-    [
-      { name: "countryId", value: formData.country },
-      { name: "divisionId", value: formData.division },
-    ],
-    {
-      skip: !formData.division,
-    }
-  );
-
-  const { data: thanas } = useGetAllThanasQuery(
-    [
-      { name: "countryId", value: formData.country },
-      { name: "divisionId", value: formData.division },
-      { name: "districtId", value: formData.district },
-    ],
-    {
-      skip: !formData.district,
-    }
-  );
+  // Sync selected options with formData when externally updated
+  useEffect(() => {
+    if (!formData.country) setSelectedCountry(null);
+    if (!formData.division) setSelectedDivision(null);
+    if (!formData.district) setSelectedDistrict(null);
+    if (!formData.thana) setSelectedThana(null);
+  }, [formData.country, formData.division, formData.district, formData.thana]);
 
   const handleCustomChange = (name: string, value: string) => {
     handleChange({
@@ -65,25 +44,33 @@ const AddressSection = ({ formData, handleChange, loading, onSubmit }: AddressSe
     } as React.ChangeEvent<HTMLSelectElement>);
   };
 
-  const selectedCountry =
-    countries?.data
-      ?.filter((c: any) => c.id === formData.country)
-      .map((c: any) => ({ value: c.id, label: c.name })) || [];
+  const handleCountryChange = (value: SelectOption | SelectOption[] | null) => {
+    const option = value as SelectOption | null;
+    setSelectedCountry(option);
+    const countryId = option?.value?.toString() || "";
+    handleCustomChange("country", countryId);
+  };
 
-  const selectedDivision =
-    divisions?.data
-      ?.filter((d: any) => d.id === formData.division)
-      .map((d: any) => ({ value: d.id, label: d.name })) || [];
+  const handleDivisionChange = (value: SelectOption | SelectOption[] | null) => {
+    const option = value as SelectOption | null;
+    setSelectedDivision(option);
+    const divisionId = option?.value?.toString() || "";
+    handleCustomChange("division", divisionId);
+  };
 
-  const selectedDistrict =
-    districts?.data
-      ?.filter((d: any) => d.id === formData.district)
-      .map((d: any) => ({ value: d.id, label: d.name })) || [];
+  const handleDistrictChange = (value: SelectOption | SelectOption[] | null) => {
+    const option = value as SelectOption | null;
+    setSelectedDistrict(option);
+    const districtId = option?.value?.toString() || "";
+    handleCustomChange("district", districtId);
+  };
 
-  const selectedThana =
-    thanas?.data
-      ?.filter((t: any) => t.id === formData.thana)
-      .map((t: any) => ({ value: t.id, label: t.name })) || [];
+  const handleThanaChange = (value: SelectOption | SelectOption[] | null) => {
+    const option = value as SelectOption | null;
+    setSelectedThana(option);
+    const thanaId = option?.value?.toString() || "";
+    handleCustomChange("thana", thanaId);
+  };
 
   return (
     <motion.div
@@ -92,7 +79,7 @@ const AddressSection = ({ formData, handleChange, loading, onSubmit }: AddressSe
       variants={{
         visible: { transition: { staggerChildren: 0.1 } },
       }}
-      className="bg-card-primary border-border overflow-hidden rounded-lg border shadow-sm"
+      className="bg-card-primary border-border rounded-lg border shadow-sm"
     >
       <div className="border-border border-b bg-linear-to-r from-transparent to-black/2 p-6">
         <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight">
@@ -114,12 +101,10 @@ const AddressSection = ({ formData, handleChange, loading, onSubmit }: AddressSe
               fields={["id", "name"]}
               mapToOption={(item) => ({ value: item.id, label: item.name })}
               value={selectedCountry}
-              onChange={(val) => {
-                const v = (val as SelectOption)?.value?.toString() || "";
-                handleCustomChange("country", v);
-              }}
+              onChange={handleCountryChange}
               searchable
               paginated
+              loadingStyle="eager"
               placeholder="Select Country"
             />
           </motion.div>
@@ -135,12 +120,10 @@ const AddressSection = ({ formData, handleChange, loading, onSubmit }: AddressSe
               extraParams={{ countryId: formData.country }}
               mapToOption={(item) => ({ value: item.id, label: item.name })}
               value={selectedDivision}
-              onChange={(val) => {
-                const v = (val as SelectOption)?.value?.toString() || "";
-                handleCustomChange("division", v);
-              }}
+              onChange={handleDivisionChange}
               searchable
               paginated
+              loadingStyle="eager"
               placeholder="Select Division"
             />
           </motion.div>
@@ -159,12 +142,10 @@ const AddressSection = ({ formData, handleChange, loading, onSubmit }: AddressSe
               }}
               mapToOption={(item) => ({ value: item.id, label: item.name })}
               value={selectedDistrict}
-              onChange={(val) => {
-                const v = (val as SelectOption)?.value?.toString() || "";
-                handleCustomChange("district", v);
-              }}
+              onChange={handleDistrictChange}
               searchable
               paginated
+              loadingStyle="eager"
               placeholder="Select District"
             />
           </motion.div>
@@ -184,19 +165,17 @@ const AddressSection = ({ formData, handleChange, loading, onSubmit }: AddressSe
               }}
               mapToOption={(item) => ({ value: item.id, label: item.name })}
               value={selectedThana}
-              onChange={(val) => {
-                const v = (val as SelectOption)?.value?.toString() || "";
-                handleCustomChange("thana", v);
-              }}
+              onChange={handleThanaChange}
               searchable
               paginated
+              loadingStyle="eager"
               placeholder="Select Thana"
             />
           </motion.div>
         </div>
 
         {/* Save Button */}
-        <div className="mt-8 flex justify-end pt-4">
+        <div className="mt-8 flex justify-end">
           <motion.button
             type="submit"
             disabled={loading}
