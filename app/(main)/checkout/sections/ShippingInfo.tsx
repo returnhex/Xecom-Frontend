@@ -74,17 +74,17 @@ const ShippingInfo = ({ street, postalCode, onLocationChange, setTouched }: Ship
   return (
     <div className="space-y-6">
       {/* Header Row */}
-      <div className="flex flex-col justify-between gap-4 border-b border-border pb-4 sm:flex-row sm:items-center">
+      <div className="border-border flex flex-col justify-between gap-4 border-b pb-4 sm:flex-row sm:items-center">
         <div>
-          <h2 className="text-xl font-semibold tracking-tight text-foreground">
+          <h2 className="text-foreground text-xl font-semibold tracking-tight">
             Shipping & Billing
           </h2>
-          <p className="text-sm text-muted-foreground">Select a saved address or add a new one.</p>
+          <p className="text-muted-foreground text-sm">Select a saved address or add a new one.</p>
         </div>
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="flex cursor-pointer items-center justify-center gap-1.5 self-start rounded-lg bg-button-primary px-4 py-2 text-xs font-semibold text-button-primary-foreground transition-all hover:opacity-90 active:scale-95 sm:self-auto"
+          className="bg-button-primary text-button-primary-foreground flex cursor-pointer items-center justify-center gap-1.5 self-start rounded-lg px-4 py-2 text-xs font-semibold transition-all hover:opacity-90 active:scale-95 sm:self-auto"
         >
           <Plus size={14} />
           <span>Add address</span>
@@ -94,13 +94,15 @@ const ShippingInfo = ({ street, postalCode, onLocationChange, setTouched }: Ship
       {/* Address Content Area */}
       {!savedAddress ? (
         /* Dotted No Saved Address Card */
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-muted/30 px-4 py-12 text-center">
-          <h3 className="mb-1 text-base font-semibold text-foreground">No saved addresses yet</h3>
-          <p className="mb-5 text-sm text-muted-foreground">Add an address to speed up your checkout.</p>
+        <div className="border-border bg-muted/30 flex flex-col items-center justify-center rounded-lg border border-dashed px-4 py-12 text-center">
+          <h3 className="text-foreground mb-1 text-base font-semibold">No saved addresses yet</h3>
+          <p className="text-muted-foreground mb-5 text-sm">
+            Add an address to speed up your checkout.
+          </p>
           <button
             type="button"
             onClick={() => setIsOpen(true)}
-            className="flex cursor-pointer items-center justify-center gap-1.5 rounded-lg bg-button-primary px-4 py-2 text-xs font-semibold text-button-primary-foreground transition-all hover:opacity-90 active:scale-95"
+            className="bg-button-primary text-button-primary-foreground flex cursor-pointer items-center justify-center gap-1.5 rounded-lg px-4 py-2 text-xs font-semibold transition-all hover:opacity-90 active:scale-95"
           >
             <Plus size={14} />
             <span>Add address</span>
@@ -108,12 +110,12 @@ const ShippingInfo = ({ street, postalCode, onLocationChange, setTouched }: Ship
         </div>
       ) : (
         /* Premium Saved Address Card showing details */
-        <div className="relative rounded-lg border-2 border-border bg-card-primary p-6 shadow-sm transition hover:shadow-md">
+        <div className="border-border bg-card-primary relative rounded-lg border-2 p-6 shadow-sm transition hover:shadow-md">
           <span className="absolute top-4 right-4 flex gap-2">
             <button
               type="button"
               onClick={() => setIsOpen(true)}
-              className="flex cursor-pointer items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+              className="text-muted-foreground hover:text-foreground flex cursor-pointer items-center gap-1 text-xs font-medium transition-colors"
             >
               <Edit2 size={13} />
               <span>Edit</span>
@@ -121,25 +123,25 @@ const ShippingInfo = ({ street, postalCode, onLocationChange, setTouched }: Ship
           </span>
 
           <div className="mb-3 flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-muted text-foreground">
+            <div className="bg-muted text-foreground flex h-7 w-7 items-center justify-center rounded-full">
               <User size={14} />
             </div>
-            <h4 className="font-semibold text-foreground">{savedAddress.fullName}</h4>
+            <h4 className="text-foreground font-semibold">{savedAddress.fullName}</h4>
             {savedAddress.isDefault && (
-              <span className="text-2xs inline-flex items-center rounded-full bg-batch/30 px-2 py-0.5 font-medium text-batch-foreground">
+              <span className="text-2xs bg-batch/30 text-batch-foreground inline-flex items-center rounded-full px-2 py-0.5 font-medium">
                 Default Address
               </span>
             )}
           </div>
 
-          <div className="space-y-2.5 pl-9 text-sm text-muted-foreground">
+          <div className="text-muted-foreground space-y-2.5 pl-9 text-sm">
             <p className="flex items-center gap-2">
-              <Phone size={14} className="shrink-0 text-muted-foreground/80" />
+              <Phone size={14} className="text-muted-foreground/80 shrink-0" />
               <span className="text-foreground/90">{savedAddress.phone}</span>
             </p>
             <p className="flex items-start gap-2">
-              <MapPin size={14} className="mt-0.5 shrink-0 text-muted-foreground/80" />
-              <span className="leading-relaxed text-foreground/90">
+              <MapPin size={14} className="text-muted-foreground/80 mt-0.5 shrink-0" />
+              <span className="text-foreground/90 leading-relaxed">
                 {savedAddress.streetAddress}, {savedAddress.thanaName}, {savedAddress.districtName},{" "}
                 {savedAddress.divisionName}, {savedAddress.countryName} - {savedAddress.postcode}
               </span>
@@ -159,4 +161,3 @@ const ShippingInfo = ({ street, postalCode, onLocationChange, setTouched }: Ship
 };
 
 export default ShippingInfo;
-
