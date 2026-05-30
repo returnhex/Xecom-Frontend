@@ -1,6 +1,6 @@
 import { baseApi } from "@/redux/api/baseApi";
 import { TAdmin, TCustomer, TQueryParam, TResponseRedux, TStaff, TUser } from "@/types";
-import { TAddAddressDto, TChangeStatusDto, TUserMetadata, TUpdateUserDto } from "./dto/user.dto";
+import { TAddOrUpdateUserAddressDto, TChangeStatusDto, TUserMetadata, TUserAddress } from "./dto/user.dto";
 
 const userApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -46,6 +46,38 @@ const userApi = baseApi.injectEndpoints({
       },
     }),
 
+    //-----------------Update Me-----------------
+    updateMe: builder.mutation({
+      query: (data: FormData) => ({
+        url: "/user/me",
+        method: "PATCH",
+        body: data,
+      }),
+      invalidatesTags: ["user"],
+    }),
+
+    //-----------------Get User Address-----------------
+    getUserAddresses: builder.query({
+      query: () => ({
+        url: "/user/address",
+        method: "GET",
+      }),
+      providesTags: ["user"],
+      transformResponse: (response: TResponseRedux<TUserAddress[]>) => ({
+        data: response.data,
+      }),
+    }),
+
+    //-----------------Add or update User Address-----------------
+    addOrUpdateUserAddress: builder.mutation({
+      query: (data: TAddOrUpdateUserAddressDto) => ({
+        url: "/user/address",
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: ["user"],
+    }),
+
     //-----------------Get User Metadata-----------------
     getUserMetadata: builder.query({
       query: () => {
@@ -63,15 +95,6 @@ const userApi = baseApi.injectEndpoints({
     }),
 
     //-----------------Change Status-----------------
-    // changeStatus: builder.mutation({
-    //   query: (args: { id: string; data: TChangeStatusDto }) => ({
-    //     url: `/user/change-status/${args.id}`,
-    //     method: "POST",
-    //     body: args.data,
-    //   }),
-    //   invalidatesTags: ["user"],
-    // }),
-
     changeStatus: builder.mutation({
       query: (args: { id: string; data: TChangeStatusDto }) => ({
         url: `/user/change-status/${args.id}`,
@@ -79,27 +102,6 @@ const userApi = baseApi.injectEndpoints({
         body: args.data,
       }),
       invalidatesTags: ["user"],
-    }),
-
-    //-----------------Add User Address-----------------
-    addUserAddress: builder.mutation({
-      query: (data: TAddAddressDto) => ({
-        url: "/user/address",
-        method: "POST",
-        body: data,
-      }),
-      invalidatesTags: ["user", "address"],
-    }),
-
-    //-----------------Update Me-----------------
-    updateMe: builder.mutation<TResponseRedux<TAdmin | TCustomer | TStaff>, FormData>({
-      query: (data: FormData) => ({
-        url: "/user/me",
-        method: "PATCH",
-        body: data,
-      }),
-      invalidatesTags: ["user"],
-      transformResponse: (response: TResponseRedux<TAdmin | TCustomer | TStaff>) => response,
     }),
   }),
 });
@@ -109,6 +111,7 @@ export const {
   useGetMeQuery,
   useGetUserMetadataQuery,
   useChangeStatusMutation,
-  useAddUserAddressMutation,
+  useAddOrUpdateUserAddressMutation,
   useUpdateMeMutation,
+  useGetUserAddressesQuery,
 } = userApi;

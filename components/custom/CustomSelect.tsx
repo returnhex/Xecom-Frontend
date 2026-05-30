@@ -68,6 +68,36 @@ export const CustomSelect = ({
 
   const selectedArray: SelectOption[] = value ? (Array.isArray(value) ? value : [value]) : [];
 
+  // If a controlled value is set with a placeholder label (common when prefilling from IDs),
+  // try to replace it with the real option object once options are loaded.
+  useEffect(() => {
+    if (!onChange) return;
+    if (options.length === 0) return;
+    if (!value) return;
+
+    const needsHydration = (opt: SelectOption) =>
+      !opt.label || opt.label === "Loading..." || opt.label === String(opt.value);
+
+    if (!multiSelect) {
+      if (Array.isArray(value)) return;
+      if (!needsHydration(value)) return;
+
+      const match = options.find((o) => o.value === value.value);
+      if (match && match.label !== value.label) {
+        onChange(match);
+      }
+      return;
+    }
+
+    if (!Array.isArray(value)) return;
+    const next = value.map((v) => {
+      if (!needsHydration(v)) return v;
+      return options.find((o) => o.value === v.value) ?? v;
+    });
+    const changed = next.some((n, i) => n.label !== value[i]?.label);
+    if (changed) onChange(next);
+  }, [options, value, onChange, multiSelect]);
+
   // ── Fetch ──────────────────────────────────────────────────────────────────
 
   const load = useCallback(
@@ -130,10 +160,10 @@ export const CustomSelect = ({
           const mappedData = mapToOption
             ? json.data.map(mapToOption)
             : json.data.map((item: any) => ({
-                value: item.id,
-                label: item.name || item.label,
-                ...item,
-              }));
+              value: item.id,
+              label: item.name || item.label,
+              ...item,
+            }));
 
           const hasMorePages =
             json.meta?.hasNextPage ??
@@ -300,8 +330,20 @@ export const CustomSelect = ({
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
+  const needsHydrationForDisplay = (opt: SelectOption) =>
+    !opt.label || opt.label === "Loading..." || opt.label === String(opt.value);
+
+  const singleSelected = !multiSelect && selectedArray.length > 0 ? selectedArray[0] : null;
+  const singleSelectedHydrating = singleSelected ? needsHydrationForDisplay(singleSelected) : false;
+
   const triggerLabel =
-    selectedArray.length === 0 ? placeholder : !multiSelect ? selectedArray[0].label : null;
+    selectedArray.length === 0
+      ? placeholder
+      : !multiSelect
+        ? singleSelectedHydrating
+          ? "Loading..."
+          : selectedArray[0].label
+        : null;
 
   return (
     <div ref={containerRef} className={`relative w-full ${className}`}>
@@ -334,7 +376,9 @@ export const CustomSelect = ({
                   key={s.value}
                   className="bg-batch text-batch-foreground inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium"
                 >
-                  <span className="max-w-30 truncate">{s.label}</span>
+                  <span className="max-w-30 truncate">
+                    {needsHydrationForDisplay(s) ? "Loading..." : s.label}
+                  </span>
                   <X
                     className="hover:text-destructive h-3 w-3 shrink-0 cursor-pointer"
                     onClick={(e) => removeSelected(s, e)}
@@ -349,7 +393,13 @@ export const CustomSelect = ({
         ) : null}
 
         {triggerLabel && (
-          <span className={selectedArray.length === 0 ? "text-muted-foreground flex-1" : "flex-1"}>
+          <span
+            className={
+              selectedArray.length === 0 || singleSelectedHydrating
+                ? "text-muted-foreground flex-1"
+                : "flex-1"
+            }
+          >
             {triggerLabel}
           </span>
         )}
@@ -362,9 +412,8 @@ export const CustomSelect = ({
         )}
 
         <ChevronDown
-          className={`text-muted-foreground h-4 w-4 shrink-0 transition-transform duration-200 ${
-            open ? "rotate-180" : ""
-          }`}
+          className={`text-muted-foreground h-4 w-4 shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""
+            }`}
         />
       </button>
 

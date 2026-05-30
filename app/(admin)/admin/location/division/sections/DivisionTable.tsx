@@ -48,7 +48,7 @@ interface DivisionTableProps {
 
 export default function DivisionTable({ onEdit }: DivisionTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCountry, setSelectedCountry] = useState<SelectOption[]>([]);
+  const [selectedCountry, setSelectedCountry] = useState<SelectOption | null>(null);
 
   const { handleSort, getSortIcon, getSortParams } = useTableSort<SortableFields>();
 
@@ -96,8 +96,8 @@ export default function DivisionTable({ onEdit }: DivisionTableProps) {
       params.push({ name: "searchTerm", value: debouncedSearchTerm });
     }
 
-    if (selectedCountry?.[0]?.value) {
-      params.push({ name: "countryId", value: selectedCountry[0].value.toString() });
+    if (selectedCountry?.value) {
+      params.push({ name: "countryId", value: selectedCountry.value.toString() });
     }
 
     return params;
@@ -155,7 +155,7 @@ export default function DivisionTable({ onEdit }: DivisionTableProps) {
 
         <div
           className={`max-w-64 min-w-44 ${
-            selectedCountry?.length ? "[&_button]:border-primary [&_button]:bg-primary/5" : ""
+            selectedCountry ? "[&_button]:border-primary [&_button]:bg-primary/5" : ""
           }`}
         >
           <CustomSelect
@@ -167,10 +167,11 @@ export default function DivisionTable({ onEdit }: DivisionTableProps) {
             })}
             value={selectedCountry}
             onChange={(vals) => {
-              setSelectedCountry(vals as SelectOption[]);
+              setSelectedCountry(vals as SelectOption | null);
               handleFilterChange();
             }}
             searchable
+            loadingStyle="eager"
             paginated
             placeholder="All Countries"
           />

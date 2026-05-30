@@ -4,13 +4,6 @@ export type TChangeStatusDto = {
   status: UserStatus;
 };
 
-export type TAddAddressDto = {
-  userId?: string;
-  thanaId: string;
-  postalCode?: string;
-  street: string;
-};
-
 export type TUserMetadata = {
   totalUsers: number;
   totalActiveUsers: number;
@@ -18,23 +11,25 @@ export type TUserMetadata = {
   totalVerifiedAccounts: number;
 };
 
-export type TUpdateUserDto = {
-  name?: string;
-  email?: string;
-  phoneNumber?: string;
-  profilePicture?: File | string;
-};
-
-export type TUpdateAddressDto = {
-  street: string;
-  city: string;
-  state: string;
-  postalCode: string;
-  country: string;
-};
-
 export type TChangePasswordDto = {
   currentPassword: string;
   newPassword: string;
   confirmPassword: string;
 };
+
+export type TAddOrUpdateUserAddressDto = {
+  thanaId: string;
+  postalCode?: number;
+  street: string;
+  isDefault: boolean;
+};
+
+export type TUserAddress = {
+  street: string;
+  postalCode: number;
+  isDefault: boolean;
+  thanaId: string;
+  districtId: string;
+  divisionId: string;
+  countryId: string;
+}
