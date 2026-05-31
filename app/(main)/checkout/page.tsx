@@ -492,9 +492,6 @@ const CheckoutPage = () => {
                       </button>
                     </div>
                     {promoError && <p className="text-danger mt-2 text-sm">{promoError}</p>}
-                    <p className="text-muted-foreground mt-2 text-xs">
-                      Valid codes: SAVE10, DISCOUNT10, PROMO10 (10% off)
-                    </p>
                   </div>
                 ) : (
                   <div className="bg-success border-success rounded-lg border p-3">

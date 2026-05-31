@@ -1,6 +1,11 @@
 import { TQueryParam, TResponseRedux } from "@/types";
 import { baseApi } from "@/redux/api/baseApi";
-import { TAddCouponDto, TUpdateCouponDto } from "./dto/coupon.dto";
+import {
+  TAddCouponDto,
+  TSetCouponActiveDto,
+  TUpdateCouponDto,
+  TValidateCouponDto,
+} from "./dto/coupon.dto";
 import { TCoupon } from "@/types/marketing.type";
 
 const couponApi = baseApi.injectEndpoints({
@@ -45,6 +50,29 @@ const couponApi = baseApi.injectEndpoints({
       },
     }),
 
+    //-----------------Get Coupon by Code-----------------
+    getCouponByCode: builder.query({
+      query: (code: string) => ({
+        url: `/coupon/code/${code}`,
+        method: "GET",
+      }),
+      providesTags: ["coupon"],
+      transformResponse: (response: TResponseRedux<TCoupon>) => {
+        return {
+          data: response.data,
+        };
+      },
+    }),
+
+    //-----------------Validate Coupon (Checkout)-----------------
+    validateCoupon: builder.mutation({
+      query: (data: TValidateCouponDto) => ({
+        url: "/coupon/validate",
+        method: "POST",
+        body: data,
+      }),
+    }),
+
     //-----------------Add Coupon-----------------
     addCoupon: builder.mutation({
       query: (data: TAddCouponDto) => ({
@@ -65,6 +93,16 @@ const couponApi = baseApi.injectEndpoints({
       invalidatesTags: ["coupon"],
     }),
 
+    //-----------------Activate/Deactivate Coupon-----------------
+    setCouponActive: builder.mutation({
+      query: (args: { id: string; data: TSetCouponActiveDto }) => ({
+        url: `/coupon/${args.id}/active`,
+        method: "PATCH",
+        body: args.data,
+      }),
+      invalidatesTags: ["coupon"],
+    }),
+
     //-----------------Delete Coupon-----------------
     deleteCoupon: builder.mutation({
       query: (id: string) => ({
@@ -79,7 +117,10 @@ const couponApi = baseApi.injectEndpoints({
 export const {
   useGetAllCouponsQuery,
   useGetSingleCouponQuery,
+  useGetCouponByCodeQuery,
   useAddCouponMutation,
+  useValidateCouponMutation,
   useUpdateCouponMutation,
+  useSetCouponActiveMutation,
   useDeleteCouponMutation,
 } = couponApi;

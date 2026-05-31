@@ -4,10 +4,10 @@ export type TAddCouponDto = {
   code: string;
   name: string;
   description?: string;
-  type: CouponType;
-  value: string;
-  minOrderAmount?: string;
-  maxDiscountAmount?: string;
+  type?: CouponType;
+  value: number;
+  minOrderAmount?: number;
+  maxDiscountAmount?: number;
   usageLimit?: number;
   userUsageLimit?: number;
   isActive?: boolean;
@@ -18,3 +18,15 @@ export type TAddCouponDto = {
 };
 
 export type TUpdateCouponDto = Partial<TAddCouponDto>;
+
+export type TValidateCouponDto = {
+  code: string;
+  orderAmount: number;
+  shippingCost?: number;
+  productIds?: string[];
+  categoryIds?: string[];
+};
+
+export type TSetCouponActiveDto = {
+  isActive: boolean;
+};
