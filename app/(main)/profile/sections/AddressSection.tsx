@@ -3,14 +3,24 @@
 import React, { useEffect, useMemo, useState } from "react";
 import CustomSelect, { SelectOption } from "@/components/custom/CustomSelect";
 import { API_URL } from "@/redux/api/baseApi";
-import { useAddOrUpdateUserAddressMutation, useGetUserAddressesQuery } from "@/redux/features/user/user.api";
+import {
+  useAddOrUpdateUserAddressMutation,
+  useGetUserAddressesQuery,
+} from "@/redux/features/user/user.api";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MapPin, Loader2, Save, Globe, Map, Navigation } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import SingleAddressBox, { AddressFormState } from "./SingleAddressBox";
 
 type AddressDraft = Omit<AddressFormState, "key">;
@@ -36,7 +46,12 @@ const emptyDraft = (): AddressDraft => ({
 });
 
 const AddressSection = () => {
-  const { data: addressData, isLoading: isAddressLoading, isFetching, refetch } = useGetUserAddressesQuery(undefined);
+  const {
+    data: addressData,
+    isLoading: isAddressLoading,
+    isFetching,
+    refetch,
+  } = useGetUserAddressesQuery(undefined);
   const [addOrUpdateUserAddress] = useAddOrUpdateUserAddressMutation();
 
   const [items, setItems] = useState<AddressFormState[]>([]);
@@ -54,7 +69,8 @@ const AddressSection = () => {
       district: addr.districtId ? idOption(String(addr.districtId)) : null,
       thana: addr.thanaId ? idOption(String(addr.thanaId)) : null,
       street: addr.street ?? "",
-      postalCode: addr.postalCode !== undefined && addr.postalCode !== null ? String(addr.postalCode) : "",
+      postalCode:
+        addr.postalCode !== undefined && addr.postalCode !== null ? String(addr.postalCode) : "",
       isDefault: !!addr.isDefault,
     }));
   }, [addressData]);
@@ -189,7 +205,13 @@ const AddressSection = () => {
                       const nextId = String(option?.value ?? "");
 
                       if (prevId !== nextId) {
-                        setNewDraft((p) => ({ ...p, country: option, division: null, district: null, thana: null }));
+                        setNewDraft((p) => ({
+                          ...p,
+                          country: option,
+                          division: null,
+                          district: null,
+                          thana: null,
+                        }));
                       } else {
                         setNewDraft((p) => ({ ...p, country: option }));
                       }
@@ -209,7 +231,9 @@ const AddressSection = () => {
                   <CustomSelect
                     endpoint={`${API_URL}/division`}
                     fields={["id", "name"]}
-                    extraParams={newDraft.country?.value ? { countryId: String(newDraft.country.value) } : {}}
+                    extraParams={
+                      newDraft.country?.value ? { countryId: String(newDraft.country.value) } : {}
+                    }
                     mapToOption={(x) => ({ value: String(x.id), label: x.name })}
                     value={newDraft.division}
                     onChange={(value) => {
@@ -218,7 +242,12 @@ const AddressSection = () => {
                       const nextId = String(option?.value ?? "");
 
                       if (prevId !== nextId) {
-                        setNewDraft((p) => ({ ...p, division: option, district: null, thana: null }));
+                        setNewDraft((p) => ({
+                          ...p,
+                          division: option,
+                          district: null,
+                          thana: null,
+                        }));
                       } else {
                         setNewDraft((p) => ({ ...p, division: option }));
                       }
@@ -226,7 +255,9 @@ const AddressSection = () => {
                     searchable
                     paginated
                     loadingStyle="eager"
-                    placeholder={newDraft.country?.value ? "Select Division" : "Select Country first"}
+                    placeholder={
+                      newDraft.country?.value ? "Select Division" : "Select Country first"
+                    }
                     disabled={newSaving || !newDraft.country?.value}
                   />
                 </div>
@@ -241,9 +272,9 @@ const AddressSection = () => {
                     extraParams={
                       newDraft.division?.value
                         ? {
-                          countryId: String(newDraft.country?.value ?? ""),
-                          divisionId: String(newDraft.division.value),
-                        }
+                            countryId: String(newDraft.country?.value ?? ""),
+                            divisionId: String(newDraft.division.value),
+                          }
                         : {}
                     }
                     mapToOption={(x) => ({ value: String(x.id), label: x.name })}
@@ -262,7 +293,9 @@ const AddressSection = () => {
                     searchable
                     paginated
                     loadingStyle="eager"
-                    placeholder={newDraft.division?.value ? "Select District" : "Select Division first"}
+                    placeholder={
+                      newDraft.division?.value ? "Select District" : "Select Division first"
+                    }
                     disabled={newSaving || !newDraft.division?.value}
                   />
                 </div>
@@ -277,19 +310,23 @@ const AddressSection = () => {
                     extraParams={
                       newDraft.district?.value
                         ? {
-                          countryId: String(newDraft.country?.value ?? ""),
-                          divisionId: String(newDraft.division?.value ?? ""),
-                          districtId: String(newDraft.district.value),
-                        }
+                            countryId: String(newDraft.country?.value ?? ""),
+                            divisionId: String(newDraft.division?.value ?? ""),
+                            districtId: String(newDraft.district.value),
+                          }
                         : {}
                     }
                     mapToOption={(x) => ({ value: String(x.id), label: x.name })}
                     value={newDraft.thana}
-                    onChange={(value) => setNewDraft((p) => ({ ...p, thana: value as SelectOption | null }))}
+                    onChange={(value) =>
+                      setNewDraft((p) => ({ ...p, thana: value as SelectOption | null }))
+                    }
                     searchable
                     paginated
                     loadingStyle="eager"
-                    placeholder={newDraft.district?.value ? "Select Thana" : "Select District first"}
+                    placeholder={
+                      newDraft.district?.value ? "Select Thana" : "Select District first"
+                    }
                     disabled={newSaving || !newDraft.district?.value}
                   />
                 </div>
@@ -321,7 +358,9 @@ const AddressSection = () => {
                   <Checkbox
                     id="new-default"
                     checked={newDraft.isDefault}
-                    onCheckedChange={(checked) => setNewDraft((p) => ({ ...p, isDefault: !!checked }))}
+                    onCheckedChange={(checked) =>
+                      setNewDraft((p) => ({ ...p, isDefault: !!checked }))
+                    }
                     disabled={newSaving}
                   />
                   <label htmlFor="new-default" className="text-sm font-medium select-none">

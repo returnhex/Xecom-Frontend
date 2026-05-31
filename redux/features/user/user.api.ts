@@ -1,6 +1,11 @@
 import { baseApi } from "@/redux/api/baseApi";
 import { TAdmin, TCustomer, TQueryParam, TResponseRedux, TStaff, TUser } from "@/types";
-import { TAddOrUpdateUserAddressDto, TChangeStatusDto, TUserMetadata, TUserAddress } from "./dto/user.dto";
+import {
+  TAddOrUpdateUserAddressDto,
+  TChangeStatusDto,
+  TUserMetadata,
+  TUserAddress,
+} from "./dto/user.dto";
 
 const userApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({

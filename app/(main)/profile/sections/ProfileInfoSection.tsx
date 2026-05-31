@@ -91,10 +91,13 @@ const ProfileInfoSection = () => {
       }
 
       const body = new FormData();
-      body.append("text", JSON.stringify({
-        name: formData.name,
-        phoneNumber: formData.phoneNumber,
-      }));
+      body.append(
+        "text",
+        JSON.stringify({
+          name: formData.name,
+          phoneNumber: formData.phoneNumber,
+        })
+      );
       if (selectedFile) {
         body.append("file", selectedFile);
       }
@@ -108,7 +111,6 @@ const ProfileInfoSection = () => {
       setLoading(false);
     }
   };
-
 
   return (
     <motion.div

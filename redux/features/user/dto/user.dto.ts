@@ -32,4 +32,4 @@ export type TUserAddress = {
   districtId: string;
   divisionId: string;
   countryId: string;
-}
+};
