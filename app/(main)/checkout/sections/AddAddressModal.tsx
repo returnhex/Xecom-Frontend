@@ -9,7 +9,7 @@ import { API_URL } from "@/redux/api/baseApi";
 import CustomSelect, { SelectOption } from "@/components/custom/CustomSelect";
 import { useAppSelector } from "@/redux/hooks";
 import { selectCurrentUser } from "@/redux/features/auth/authSlice";
-import { useGetMeQuery, useAddUserAddressMutation } from "@/redux/features/user/user.api";
+import { useGetMeQuery, useAddOrUpdateUserAddressMutation } from "@/redux/features/user/user.api";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
@@ -39,7 +39,7 @@ const toArray = (val: SelectOption | SelectOption[] | null): SelectOption[] => {
 const AddAddressModal = ({ isOpen, onClose, onSave }: AddAddressModalProps) => {
   const currentUser = useAppSelector(selectCurrentUser);
   const { data: userData } = useGetMeQuery(undefined, { skip: !currentUser });
-  const [addUserAddress, { isLoading: isSavingAddress }] = useAddUserAddressMutation();
+  const [addUserAddress, { isLoading: isSavingAddress }] = useAddOrUpdateUserAddressMutation();
 
   // Address Modal form state
   const [fullName, setFullName] = useState("");
@@ -113,7 +113,8 @@ const AddAddressModal = ({ isOpen, onClose, onSave }: AddAddressModalProps) => {
       await addUserAddress({
         thanaId: thanaIdVal,
         street: streetAddress,
-        postalCode: postcode,
+        postalCode: Number(postcode),
+        isDefault: false,
       }).unwrap();
       toast.success("Address successfully saved to your profile!");
     } catch (apiError: any) {

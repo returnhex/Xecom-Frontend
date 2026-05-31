@@ -113,15 +113,8 @@ const ProfileInfoSection = () => {
   };
 
   return (
-    <motion.div
-      initial="hidden"
-      animate="visible"
-      variants={{
-        visible: { transition: { staggerChildren: 0.1 } },
-      }}
-      className="bg-card-primary border-border overflow-hidden rounded-lg border shadow-sm"
-    >
-      <div className="border-border border-b bg-linear-to-r from-transparent to-black/2 p-6">
+    <div className="bg-card-primary border-border overflow-hidden rounded-lg border shadow-sm">
+      <div className="border-border border-b bg-linear-to-r from-transparent to-black/20 p-6">
         <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight">
           <User className="text-primary h-5 w-5" />
           Personal Information
@@ -130,7 +123,7 @@ const ProfileInfoSection = () => {
       </div>
 
       {fetchLoading ? (
-        <div className="text-muted-foreground flex items-center justify-center gap-2 py-10 text-sm">
+        <div className="text-muted-foreground flex items-center justify-center gap-2 py-18 text-sm">
           <Loader2 className="h-4 w-4 animate-spin" />
           Loading profile…
         </div>
@@ -177,8 +170,8 @@ const ProfileInfoSection = () => {
 
             {/* Right Column — Fields */}
             <motion.div variants={itemVariants} className="space-y-6 lg:col-span-8">
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                <div className="space-y-2 md:col-span-2">
+              <div className="grid grid-cols-1 gap-6">
+                <div className="space-y-2">
                   <Label htmlFor="name" className="flex items-center gap-2">
                     <User size={14} /> Full Name
                   </Label>
@@ -253,7 +246,7 @@ const ProfileInfoSection = () => {
           </div>
         </form>
       )}
-    </motion.div>
+    </div>
   );
 };
 

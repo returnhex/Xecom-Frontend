@@ -9,7 +9,7 @@ import {
 } from "@/redux/features/user/user.api";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { MapPin, Loader2, Save, Globe, Map, Navigation } from "lucide-react";
+import { MapPin, Loader2, Save, Globe, Map, Navigation, Plus } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -143,15 +143,8 @@ const AddressSection = () => {
   };
 
   return (
-    <motion.div
-      initial="hidden"
-      animate="visible"
-      variants={{
-        visible: { transition: { staggerChildren: 0.1 } },
-      }}
-      className="bg-card-primary border-border rounded-lg border shadow-sm"
-    >
-      <div className="border-border flex items-start justify-between gap-4 border-b bg-linear-to-r from-transparent to-black/2 p-6">
+    <div className="bg-card-primary border-border rounded-lg border shadow-sm">
+      <div className="border-border flex items-start justify-between gap-4 border-b bg-linear-to-r from-transparent to-black/20 p-6">
         <div>
           <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight">
             <MapPin className="text-primary h-5 w-5" />
@@ -170,9 +163,9 @@ const AddressSection = () => {
           <DialogTrigger asChild>
             <button
               type="button"
-              className="bg-button-primary text-button-primary-foreground h-10 cursor-pointer rounded-xl px-4 text-sm font-bold shadow-lg transition-all hover:opacity-90 active:scale-[0.98]"
+              className="flex items-center gap-2 bg-button-primary text-button-primary-foreground h-10 cursor-pointer rounded-xl px-4 text-sm font-bold shadow-lg transition-all hover:opacity-90 active:scale-[0.98]"
             >
-              Add new address
+              <Plus className="h-4 w-4" /> Add new address
             </button>
           </DialogTrigger>
 
@@ -425,7 +418,7 @@ const AddressSection = () => {
           </div>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 };
 
