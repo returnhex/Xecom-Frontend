@@ -163,7 +163,7 @@ const AddressSection = () => {
           <DialogTrigger asChild>
             <button
               type="button"
-              className="flex items-center gap-2 bg-button-primary text-button-primary-foreground h-10 cursor-pointer rounded-xl px-4 text-sm font-bold shadow-lg transition-all hover:opacity-90 active:scale-[0.98]"
+              className="bg-button-primary text-button-primary-foreground flex h-10 cursor-pointer items-center gap-2 rounded-xl px-4 text-sm font-bold shadow-lg transition-all hover:opacity-90 active:scale-[0.98]"
             >
               <Plus className="h-4 w-4" /> Add new address
             </button>
