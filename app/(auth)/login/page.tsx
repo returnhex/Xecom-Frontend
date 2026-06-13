@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import ModernSneakerShowcase from "./component/annimationSneakersImage2";
 import { useLoginMutation } from "@/redux/features/auth/auth.api";
+import { useMergeGuestCartMutation } from "@/redux/features/order/cart.api";
+import { CartMergeConflict } from "@/redux/features/order/dto/cart.dto";
 import { useAppDispatch } from "@/redux/hooks";
 import { setUser } from "@/redux/features/auth/authSlice";
 import { jwtDecode } from "jwt-decode";
@@ -31,6 +33,7 @@ const Login = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const [login, { isLoading }] = useLoginMutation();
+  const [mergeGuestCart] = useMergeGuestCartMutation();
 
   const {
     register,
@@ -78,6 +81,23 @@ const Login = () => {
 
         // Show success message
         toast.success(response.message || "Logged in successfully");
+
+        // Merge guest cart if one exists
+        const guestToken = localStorage.getItem("guestToken");
+        if (guestToken) {
+          try {
+            const mergeResult = await mergeGuestCart({ guestToken }).unwrap();
+            const mergeData = (mergeResult as any)?.data ?? mergeResult;
+            if (mergeData?.merged) {
+              localStorage.removeItem("guestToken");
+              (mergeData.conflicts as CartMergeConflict[] | undefined)?.forEach((conflict) => {
+                toast.warning(conflict.message);
+              });
+            }
+          } catch {
+            // silently ignore merge errors
+          }
+        }
 
         // Redirect based on role
         if (

@@ -24,10 +24,9 @@ const ShippingInfo = ({ street, postalCode, onLocationChange, setTouched }: Ship
   const [isOpen, setIsOpen] = useState(false);
   const [savedAddress, setSavedAddress] = useState<SavedAddressDetail | null>(null);
   useEffect(() => {
-    const storageKey = currentUser?.id ? `saved_address_${currentUser.id}` : "saved_address_guest";
-    const storageThanaKey = currentUser?.id
-      ? `saved_address_thana_id_${currentUser.id}`
-      : "saved_address_thana_id_guest";
+    if (!currentUser?.id) return;
+    const storageKey = `saved_address_${currentUser.id}`;
+    const storageThanaKey = `saved_address_thana_id_${currentUser.id}`;
 
     const cached = localStorage.getItem(storageKey);
     const cachedThanaId = localStorage.getItem(storageThanaKey);
@@ -53,10 +52,8 @@ const ShippingInfo = ({ street, postalCode, onLocationChange, setTouched }: Ship
     setSavedAddress(addressDetail);
 
     // Save locally
-    const storageKey = currentUser?.id ? `saved_address_${currentUser.id}` : "saved_address_guest";
-    const storageThanaKey = currentUser?.id
-      ? `saved_address_thana_id_${currentUser.id}`
-      : "saved_address_thana_id_guest";
+    const storageKey = `saved_address_${currentUser?.id ?? ""}`;
+    const storageThanaKey = `saved_address_thana_id_${currentUser?.id ?? ""}`;
 
     localStorage.setItem(storageKey, JSON.stringify(addressDetail));
     localStorage.setItem(storageThanaKey, thanaIdVal);

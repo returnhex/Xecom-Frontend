@@ -1,7 +1,7 @@
 "use client";
 
 import { Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -13,13 +13,18 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   useGetMyCartQuery,
+  useGetGuestCartQuery,
   useUpdateCartQuantityMutation,
   useDeleteCartItemMutation,
+  useUpdateGuestCartQuantityMutation,
+  useDeleteGuestCartItemMutation,
 } from "@/redux/features/order/cart.api";
 import { CartSkeleton } from "./CartSkeleton";
 import { EmptyCart } from "./EmptyCart";
 import { UserRole } from "@/constants/enum";
 import ProtectedRoute from "@/route/ProtectedRoute";
+import { useAppSelector } from "@/redux/hooks";
+import { selectCurrentUser } from "@/redux/features/auth/authSlice";
 
 export default function CartContent({
   isSheet = false,
@@ -28,24 +33,45 @@ export default function CartContent({
   isSheet?: boolean;
   onClose?: () => void;
 }) {
-  const { data, isLoading } = useGetMyCartQuery([]);
+  const user = useAppSelector(selectCurrentUser);
+  const [guestToken, setGuestToken] = useState<string>("");
+
+  useEffect(() => {
+    const sync = (e?: StorageEvent) => {
+      if (e && e.key !== "guestToken") return;
+      if (!user) setGuestToken(localStorage.getItem("guestToken") ?? "");
+    };
+    sync();
+    window.addEventListener("storage", sync as EventListener);
+    return () => window.removeEventListener("storage", sync as EventListener);
+  }, [user]);
+
+  const { data: myCartData, isLoading: myCartLoading } = useGetMyCartQuery(undefined, {
+    skip: !user,
+  });
+  const { data: guestCartData, isLoading: guestCartLoading } = useGetGuestCartQuery(guestToken, {
+    skip: !!user || !guestToken,
+  });
+
   const [updateCartQuantity] = useUpdateCartQuantityMutation();
   const [deleteCartItem] = useDeleteCartItemMutation();
+  const [updateGuestCartQuantity] = useUpdateGuestCartQuantityMutation();
+  const [deleteGuestCartItem] = useDeleteGuestCartItemMutation();
+
+  const data = user ? myCartData : guestCartData;
+  const isLoading = user ? myCartLoading : guestCartLoading;
+
   const [editingItem, setEditingItem] = useState<string | null>(null);
   const cart = data?.data as unknown as CartApi;
   const cartItems: CartItemApi[] = cart?.items ?? [];
 
   const [selection, setSelection] = useState<LocalSelection>({});
   const [localQuantity, setLocalQuantity] = useState<LocalQuantity>({});
-
-  // Tracks which items have an in-flight API request
   const [updatingItems, setUpdatingItems] = useState<Set<string>>(new Set());
 
   const getQty = (item: CartItemApi): number => localQuantity[item.id] ?? item.quantity;
 
-  // ---------- Selection ----------
   const isSelected = (id: string) => selection[id] !== false;
-
   const allSelected = cartItems.length > 0 && cartItems.every((i) => isSelected(i.id));
 
   const toggleSelectAll = () => {
@@ -58,7 +84,6 @@ export default function CartContent({
     setSelection((prev) => ({ ...prev, [id]: !isSelected(id) }));
   };
 
-  // ---------- Quantity update (optimistic) ----------
   const updateQuantity = async (item: CartItemApi, inc: boolean) => {
     const current = getQty(item);
     const newQty = inc ? current + 1 : Math.max(1, current - 1);
@@ -68,7 +93,11 @@ export default function CartContent({
     setUpdatingItems((prev) => new Set(prev).add(item.id));
 
     try {
-      await updateCartQuantity({ id: item.id, data: { quantity: newQty } }).unwrap();
+      if (user) {
+        await updateCartQuantity({ id: item.id, data: { quantity: newQty } }).unwrap();
+      } else {
+        await updateGuestCartQuantity({ guestToken, id: item.id, data: { quantity: newQty } }).unwrap();
+      }
     } catch {
       setLocalQuantity((prev) => ({ ...prev, [item.id]: current }));
     } finally {
@@ -93,7 +122,11 @@ export default function CartContent({
     setUpdatingItems((prev) => new Set(prev).add(item.id));
 
     try {
-      await updateCartQuantity({ id: item.id, data: { quantity: newQty } }).unwrap();
+      if (user) {
+        await updateCartQuantity({ id: item.id, data: { quantity: newQty } }).unwrap();
+      } else {
+        await updateGuestCartQuantity({ guestToken, id: item.id, data: { quantity: newQty } }).unwrap();
+      }
     } catch {
       setLocalQuantity((prev) => ({ ...prev, [item.id]: current }));
     } finally {
@@ -105,9 +138,13 @@ export default function CartContent({
       setEditingItem(null);
     }
   };
-  // ---------- Delete ----------
+
   const removeItem = async (cartItemId: string) => {
-    await deleteCartItem(cartItemId);
+    if (user) {
+      await deleteCartItem(cartItemId);
+    } else {
+      await deleteGuestCartItem({ guestToken, id: cartItemId });
+    }
     setSelection((prev) => {
       const next = { ...prev };
       delete next[cartItemId];
@@ -120,7 +157,6 @@ export default function CartContent({
     });
   };
 
-  // ---------- Totals (uses optimistic quantity) ----------
   const totals = (() => {
     const selected = cartItems.filter((i) => isSelected(i.id));
     const total = selected.reduce(
@@ -130,7 +166,6 @@ export default function CartContent({
     return { total, grand: Math.max(0, total) };
   })();
 
-  // ---------- Group by store ----------
   const grouped = cartItems.reduce(
     (g, i) => {
       const storeName = i.variant?.product?.store?.name ?? "Store";
@@ -205,7 +240,6 @@ export default function CartContent({
                           <span className="text-sm">Tk {finalPrice}</span>
 
                           <div className="bg-muted flex items-center gap-4 rounded-2xl px-2">
-                            {/* Decrement */}
                             <button
                               className="cursor-pointer text-lg disabled:cursor-not-allowed disabled:opacity-40"
                               onClick={() => updateQuantity(item, false)}
@@ -214,7 +248,6 @@ export default function CartContent({
                               -
                             </button>
 
-                            {/* Quantity display */}
                             <span
                               className={`w-4 text-center transition-opacity ${isUpdating ? "opacity-40" : "opacity-100"}`}
                             >
@@ -227,7 +260,6 @@ export default function CartContent({
                                   value={qty}
                                   onChange={(e) => {
                                     const value = e.target.value;
-
                                     if (value === "") {
                                       setLocalQuantity((prev) => ({
                                         ...prev,
@@ -235,9 +267,7 @@ export default function CartContent({
                                       }));
                                       return;
                                     }
-
                                     const num = Number(value);
-
                                     if (!isNaN(num)) {
                                       setLocalQuantity((prev) => ({
                                         ...prev,
@@ -261,7 +291,6 @@ export default function CartContent({
                               )}
                             </span>
 
-                            {/* Increment */}
                             <button
                               className="cursor-pointer text-lg disabled:cursor-not-allowed disabled:opacity-40"
                               onClick={() => updateQuantity(item, true)}

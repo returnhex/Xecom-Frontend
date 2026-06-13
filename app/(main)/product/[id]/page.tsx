@@ -19,7 +19,13 @@ import ProductSugation from "./sections/ProductSuggestion";
 import ProductReviews from "./sections/ProductReview";
 import { useParams } from "next/navigation";
 import { useGetSingleProductQuery } from "@/redux/features/product/product.api";
-import { useAddToCartMutation } from "@/redux/features/order/cart.api";
+import {
+  useAddToCartMutation,
+  useAddToGuestCartMutation,
+  useCreateGuestTokenMutation,
+} from "@/redux/features/order/cart.api";
+import { useAppSelector } from "@/redux/hooks";
+import { selectCurrentUser } from "@/redux/features/auth/authSlice";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -44,7 +50,11 @@ export default function ProductDetails() {
   const { data: apiResponse, isLoading } = useGetSingleProductQuery(id);
   const product = apiResponse?.data;
 
-  const [addToCart, { isLoading: isAddingToCart }] = useAddToCartMutation();
+  const user = useAppSelector(selectCurrentUser);
+  const [addToCart, { isLoading: isCartLoading }] = useAddToCartMutation();
+  const [createGuestToken, { isLoading: isCreatingToken }] = useCreateGuestTokenMutation();
+  const [addToGuestCart, { isLoading: isGuestCartLoading }] = useAddToGuestCartMutation();
+  const isAddingToCart = isCartLoading || isCreatingToken || isGuestCartLoading;
   const { data: wishlistData } = useGetAllWishlistsQuery(undefined);
   const [addToWishlist, { isLoading: isWishlisting }] = useAddToWishlistMutation();
   const [removeFromWishlist, { isLoading: isUnwishlisting }] = useRemoveFromWishlistMutation();
@@ -118,17 +128,26 @@ export default function ProductDetails() {
       return;
     }
 
-    const payload = {
-      variantId: selectedVariant.id,
-      quantity,
-    };
-
     try {
-      const result = await addToCart(payload).unwrap();
-      console.log("Cart result:", result);
+      if (user) {
+        await addToCart({ variantId: selectedVariant.id, quantity }).unwrap();
+      } else {
+        let token = localStorage.getItem("guestToken");
+        if (!token) {
+          const tokenResult = await createGuestToken(undefined).unwrap();
+          token = (tokenResult as any)?.guestToken ?? "";
+          if (token) {
+            localStorage.setItem("guestToken", token);
+            window.dispatchEvent(new StorageEvent("storage", { key: "guestToken", newValue: token }));
+          }
+        }
+        if (token) {
+          await addToGuestCart({ variantId: selectedVariant.id, quantity, guestToken: token }).unwrap();
+        }
+      }
       toast.success(`${product.name} added to cart!`);
     } catch (error: any) {
-      // console.error("Cart error full:", error);
+      toast.error(error?.data?.message || "Failed to add to cart.");
     }
   };
 
