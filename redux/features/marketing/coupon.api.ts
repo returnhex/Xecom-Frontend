@@ -5,6 +5,7 @@ import {
   TSetCouponActiveDto,
   TUpdateCouponDto,
   TValidateCouponDto,
+  TValidateCouponResponse,
 } from "./dto/coupon.dto";
 import { TCoupon } from "@/types/marketing.type";
 
@@ -65,7 +66,7 @@ const couponApi = baseApi.injectEndpoints({
     }),
 
     //-----------------Validate Coupon (Checkout)-----------------
-    validateCoupon: builder.mutation({
+    validateCoupon: builder.mutation<TValidateCouponResponse, TValidateCouponDto>({
       query: (data: TValidateCouponDto) => ({
         url: "/coupon/validate",
         method: "POST",

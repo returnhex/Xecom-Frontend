@@ -1,95 +1,149 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   ShoppingCart,
   Truck,
   Shield,
   CreditCard,
   ArrowRight,
-  Check,
-  Tag,
-  Trash2,
-  Lock,
   MapPin,
 } from "lucide-react";
-import Image from "next/image";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-import { CartData } from "@/data/cart";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import { toast } from "sonner";
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import Link from "next/link";
-import ShippingInfo, { TOrderAddressPayload } from "./sections/ShippingInfo";
+import AddressInfo, { TOrderAddressPayload } from "./sections/AddressInfo";
+import CartItems from "./sections/CartItems";
+import OrderSummary from "./sections/OrderSummary";
 import { useCreateOrderMutation } from "@/redux/features/order/order.api";
-
-interface Voucher {
-  id: string;
-  name: string;
-  description: string;
-  discount: number;
-  type: "freeShipping" | "discount" | "coins";
-  minPurchase: number;
-}
-
-interface CartItem {
-  id: string;
-  store: string;
-  name: string;
-  description: string;
-  originalPrice: number;
-  discountPercentage: number;
-  finalPrice: number;
-  image: any;
-  selected: boolean;
-  quantity: number;
-  comboOffer?: boolean;
-  sheppingFee: number;
-}
+import { useValidateCouponMutation } from "@/redux/features/marketing/coupon.api";
+import { useGetAllShippingMethodsQuery } from "@/redux/features/order/shipping-method.api";
+import {
+  useGetMyCartQuery,
+  useGetGuestCartQuery,
+  useUpdateCartQuantityMutation,
+  useDeleteCartItemMutation,
+  useUpdateGuestCartQuantityMutation,
+  useDeleteGuestCartItemMutation,
+} from "@/redux/features/order/cart.api";
+import { TValidateCouponResponse } from "@/redux/features/marketing/dto/coupon.dto";
+import { CouponType } from "@/constants/enum";
+import { TShippingMethod } from "@/types/order.type";
+import { useAppSelector } from "@/redux/hooks";
+import { selectCurrentUser } from "@/redux/features/auth/authSlice";
 
 const CheckoutPage = () => {
+  const user = useAppSelector(selectCurrentUser);
+  const [guestToken, setGuestToken] = useState<string>("");
+
+  useEffect(() => {
+    const sync = (e?: StorageEvent) => {
+      if (e && e.key !== "guestToken") return;
+      if (!user) setGuestToken(localStorage.getItem("guestToken") ?? "");
+    };
+    sync();
+    window.addEventListener("storage", sync as EventListener);
+    return () => window.removeEventListener("storage", sync as EventListener);
+  }, [user]);
+
   const [activeStep, setActiveStep] = useState<"items" | "info" | "payment">("items");
-
-  const INSIDE_DHAKA_FEE = 100;
-  const OUTSIDE_DHAKA_FEE = 150;
-
   const [formValid, setFormValid] = useState(false);
-  const [cartItems, setCartItems] = useState<CartItem[]>(CartData);
   const [promoCode, setPromoCode] = useState<string>("");
   const [appliedPromoCode, setAppliedPromoCode] = useState<string>("");
   const [promoError, setPromoError] = useState<string>("");
+  const [couponValidation, setCouponValidation] = useState<TValidateCouponResponse | null>(null);
+  const [selectedShippingMethodId, setSelectedShippingMethodId] = useState<string | null>(null);
+  const [orderAddress, setOrderAddress] = useState<TOrderAddressPayload>({});
+  const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
+  const [orderNote, setOrderNote] = useState("");
+  const [localQuantity, setLocalQuantity] = useState<LocalQuantity>({});
+  const [updatingItems, setUpdatingItems] = useState<Set<string>>(new Set());
+
+  const { data: myCartData, isLoading: myCartLoading } = useGetMyCartQuery(undefined, {
+    skip: !user,
+  });
+  const { data: guestCartData, isLoading: guestCartLoading } = useGetGuestCartQuery(guestToken, {
+    skip: !!user || !guestToken,
+  });
+
+  const [updateCartQuantity] = useUpdateCartQuantityMutation();
+  const [deleteCartItem] = useDeleteCartItemMutation();
+  const [updateGuestCartQuantity] = useUpdateGuestCartQuantityMutation();
+  const [deleteGuestCartItem] = useDeleteGuestCartItemMutation();
+
+  const cartData = user ? myCartData : guestCartData;
+  const isCartLoading = user ? myCartLoading : guestCartLoading;
+  const cart = cartData?.data as unknown as CartApi;
+  const cartItems: CartItemApi[] = cart?.items ?? [];
 
   const [createOrder, { isLoading: isOrdering }] = useCreateOrderMutation();
+  const [validateCoupon, { isLoading: isValidatingCoupon }] = useValidateCouponMutation();
+  const { data: shippingMethodsData } = useGetAllShippingMethodsQuery(undefined);
+  const shippingMethods: TShippingMethod[] = (shippingMethodsData?.data ?? []).filter(
+    (m: TShippingMethod) => m.isActive
+  );
+  const selectedShippingMethod =
+    shippingMethods.find((m) => m.id === selectedShippingMethodId) ?? null;
 
-  const validPromoCodes = ["SAVE10", "DISCOUNT10", "PROMO10"];
+  const getQty = (item: CartItemApi) => localQuantity[item.id] ?? item.quantity;
 
-  const applyPromoCode = (): void => {
+  const calculateTotals = () => {
+    const totalPrice = cartItems.reduce(
+      (sum, item) =>
+        sum + Number(item.variant.discountPrice ?? item.variant.price) * getQty(item),
+      0
+    );
+    const shippingFee = selectedShippingMethod ? Number(selectedShippingMethod.cost ?? 0) : 0;
+    const couponDiscount = couponValidation?.discountAmount ?? 0;
+
+    return {
+      totalPrice,
+      shippingFee,
+      couponDiscount,
+      grandTotal: Math.max(0, totalPrice + shippingFee - couponDiscount),
+    };
+  };
+
+  const totals = calculateTotals();
+
+  const getCouponDiscountLabel = () => {
+    if (!couponValidation) return "";
+    const { coupon, discountAmount } = couponValidation;
+    const saved = `Tk ${discountAmount.toLocaleString("en-BD")}`;
+    switch (coupon.type) {
+      case CouponType.PERCENTAGE:
+        return `${coupon.value}% off — ${saved} saved`;
+      case CouponType.FIXED_AMOUNT:
+        return `${saved} off`;
+      case CouponType.FREE_SHIPPING:
+        return `Free shipping — ${saved} saved`;
+      default:
+        return `${saved} off`;
+    }
+  };
+
+  const applyPromoCode = async (): Promise<void> => {
     const trimmedCode = promoCode.trim().toUpperCase();
     if (!trimmedCode) {
       setPromoError("Please enter a promo code");
       return;
     }
-    if (validPromoCodes.includes(trimmedCode)) {
+    try {
+      const result = await validateCoupon({
+        code: trimmedCode,
+        variants: cartItems.map((item) => ({
+          variantId: item.variantId,
+          quantity: getQty(item),
+        })),
+      }).unwrap();
+      const validation: TValidateCouponResponse = (result as any)?.data ?? result;
+      setCouponValidation(validation);
       setAppliedPromoCode(trimmedCode);
       setPromoError("");
       setPromoCode("");
-    } else {
-      setPromoError("Invalid promo code");
+    } catch (err: any) {
+      setPromoError(err?.data?.message || "Invalid or expired coupon code");
+      setCouponValidation(null);
       setAppliedPromoCode("");
     }
   };
@@ -97,109 +151,107 @@ const CheckoutPage = () => {
   const removePromoCode = (): void => {
     setAppliedPromoCode("");
     setPromoError("");
+    setCouponValidation(null);
   };
 
-  const vouchers: Voucher[] = [
-    {
-      id: "v1",
-      name: "Shipping Discount",
-      description: "Minimum spend Tk 1000",
-      discount: 145,
-      type: "freeShipping",
-      minPurchase: 1000,
-    },
-  ];
+  const updateQuantity = async (item: CartItemApi, inc: boolean) => {
+    const current = getQty(item);
+    const newQty = inc ? current + 1 : Math.max(1, current - 1);
+    if (newQty === current) return;
 
-  const updateQuantity = (id: string, increment: boolean) => {
-    setCartItems(
-      cartItems.map((item) => {
-        if (item.id === id) {
-          const newQuantity = increment ? item.quantity + 1 : Math.max(1, item.quantity - 1);
-          return { ...item, quantity: newQuantity };
-        }
-        return item;
-      })
-    );
+    setLocalQuantity((prev) => ({ ...prev, [item.id]: newQty }));
+    setUpdatingItems((prev) => new Set(prev).add(item.id));
+
+    try {
+      if (user) {
+        await updateCartQuantity({ id: item.id, data: { quantity: newQty } }).unwrap();
+      } else {
+        await updateGuestCartQuantity({
+          guestToken,
+          id: item.id,
+          data: { quantity: newQty },
+        }).unwrap();
+      }
+    } catch {
+      setLocalQuantity((prev) => ({ ...prev, [item.id]: current }));
+    } finally {
+      setUpdatingItems((prev) => {
+        const next = new Set(prev);
+        next.delete(item.id);
+        return next;
+      });
+    }
   };
 
-  const removeItem = (id: string) => {
-    setCartItems(cartItems.filter((item) => item.id !== id));
+  const setQuantity = async (item: CartItemApi, newQty: number) => {
+    const clamped = Math.max(1, Math.min(newQty, item.variant.stockQuantity));
+    const current = getQty(item);
+    if (clamped === current) return;
+
+    setLocalQuantity((prev) => ({ ...prev, [item.id]: clamped }));
+    setUpdatingItems((prev) => new Set(prev).add(item.id));
+
+    try {
+      if (user) {
+        await updateCartQuantity({ id: item.id, data: { quantity: clamped } }).unwrap();
+      } else {
+        await updateGuestCartQuantity({
+          guestToken,
+          id: item.id,
+          data: { quantity: clamped },
+        }).unwrap();
+      }
+    } catch {
+      setLocalQuantity((prev) => ({ ...prev, [item.id]: current }));
+    } finally {
+      setUpdatingItems((prev) => {
+        const next = new Set(prev);
+        next.delete(item.id);
+        return next;
+      });
+    }
   };
 
-  const [orderAddress, setOrderAddress] = useState<TOrderAddressPayload>({});
-  const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
+  const removeItem = async (cartItemId: string) => {
+    if (user) {
+      await deleteCartItem(cartItemId);
+    } else {
+      await deleteGuestCartItem({ guestToken, id: cartItemId });
+    }
+    setLocalQuantity((prev) => {
+      const next = { ...prev };
+      delete next[cartItemId];
+      return next;
+    });
+  };
 
   const handleLocationChange = (data: TOrderAddressPayload) => {
     setOrderAddress(data);
     setFormValid("addressId" in data ? !!data.addressId : !!(data.thanaId && data.street));
   };
-  const calculateTotals = () => {
-    const selectedItems = cartItems.filter((item) => item.selected);
-    const totalPrice = selectedItems.reduce(
-      (sum, item) => sum + item.finalPrice * item.quantity,
-      0
-    );
-    // Default to inside Dhaka fee for display; real fee comes from backend
-    const baseShippingFee = INSIDE_DHAKA_FEE;
-
-    let shippingFee = baseShippingFee;
-    let savedShippingFee = 0;
-
-    if (totalPrice >= 1000) {
-      savedShippingFee = baseShippingFee;
-      shippingFee = 0;
-    }
-
-    const promoDiscount = appliedPromoCode ? totalPrice * 0.1 : 0;
-    const totalDiscount = promoDiscount + savedShippingFee;
-
-    return {
-      totalPrice,
-      shippingFee,
-      fullShippingFee: baseShippingFee,
-      savedShippingFee,
-      promoDiscount,
-      totalDiscount,
-      grandTotal: Math.max(0, totalPrice + shippingFee - promoDiscount),
-    };
-  };
-
-  const groupedItems = cartItems.reduce(
-    (groups, item) => {
-      if (!groups[item.store]) groups[item.store] = [];
-      groups[item.store].push(item);
-      return groups;
-    },
-    {} as Record<string, CartItem[]>
-  );
-
-  const totals = calculateTotals();
-
-  const getOfferMessage = () => {
-    const remaining = 1000 - totals.totalPrice;
-    if (totals.totalPrice < 1000) {
-      return {
-        status: "locked",
-        message: `Spend Tk ${remaining.toLocaleString("en-BD")} more to unlock shipping offer`,
-      };
-    }
-    return { status: "active", message: "🎉 Free shipping applied (Inside Dhaka)" };
-  };
-  const offerInfo = getOfferMessage();
 
   const handlePlaceOrder = async () => {
     if (!formValid) return;
+    if (!selectedShippingMethodId) {
+      toast.error("Please select a shipping method");
+      return;
+    }
 
     try {
+      const basePayload = {
+        couponCode: appliedPromoCode || undefined,
+        shippingMethodId: selectedShippingMethodId!,
+        notes: orderNote.trim() || undefined,
+      };
       const payload =
         "addressId" in orderAddress && orderAddress.addressId
-          ? { addressId: orderAddress.addressId, couponCode: appliedPromoCode || undefined }
+          ? { ...basePayload, addressId: orderAddress.addressId }
           : {
+              ...basePayload,
               thanaId: orderAddress.thanaId,
               street: orderAddress.street,
               postalCode: orderAddress.postalCode || undefined,
               isDefault: orderAddress.isDefault,
-              couponCode: appliedPromoCode || undefined,
             };
 
       await createOrder(payload).unwrap();
@@ -213,8 +265,20 @@ const CheckoutPage = () => {
       setAppliedPromoCode("");
       setPromoCode("");
       setPromoError("");
+      setCouponValidation(null);
+      setSelectedShippingMethodId(null);
+      setOrderNote("");
     } catch (err: any) {
       toast.error(err?.data?.message || "Order failed. Please try again.");
+    }
+  };
+
+  const handleAction = async () => {
+    if (activeStep === "items") {
+      setCompletedSteps((prev) => new Set(prev).add("items"));
+      setActiveStep("info");
+    } else if (activeStep === "info") {
+      await handlePlaceOrder();
     }
   };
 
@@ -222,7 +286,7 @@ const CheckoutPage = () => {
     <div className="cart-bg container min-h-screen">
       <div className="mx-auto">
         <div className="justify-center gap-3 px-4 lg:flex">
-          {/* Left Column */}
+          {/* ─────────── Left Column ─────────── */}
           <div className={`${activeStep === "payment" ? "lg:w-full" : "lg:w-8/12"}`}>
             <div className="mb-3">
               <Tabs
@@ -265,112 +329,34 @@ const CheckoutPage = () => {
               <div className="mt-3">
                 {/* ─────────── ITEMS STEP ─────────── */}
                 {activeStep === "items" && (
-                  <div>
-                    {Object.entries(groupedItems).map(([store, items]) => (
-                      <div
-                        key={store}
-                        className="bg-card-primary mb-3 overflow-hidden rounded-xl px-2 shadow-sm"
-                      >
-                        <Accordion type="single" collapsible defaultValue={store}>
-                          <AccordionItem value={store}>
-                            <AccordionTrigger>
-                              <div className="p-2">
-                                <div className="flex cursor-pointer items-center justify-between">
-                                  <div className="ml-3">
-                                    <h3 className="text-lg font-semibold lg:text-xl">{store}</h3>
-                                  </div>
-                                </div>
-                              </div>
-                            </AccordionTrigger>
-                            <AccordionContent>
-                              <div className="cart-border-primary border-border divide-y border-t">
-                                {items.map((item) => (
-                                  <div key={item.id} className="cursor-pointer p-4">
-                                    <div className="flex flex-col gap-4 sm:flex-row">
-                                      <div className="cart-img-bg-primary h-24 w-full shrink-0 overflow-hidden rounded-lg sm:w-24">
-                                        <div className="flex h-full w-full items-center justify-center">
-                                          <Image
-                                            src={item.image}
-                                            alt={item.name}
-                                            width={96}
-                                            height={96}
-                                            className="object-cover"
-                                          />
-                                        </div>
-                                      </div>
-                                      <div className="flex flex-1 flex-col justify-between">
-                                        <div className="flex flex-row justify-between">
-                                          <div>
-                                            <h4 className="text-sm font-medium lg:text-lg">
-                                              {item.name}{" "}
-                                              <span className="ml-2">x {item.quantity}</span>
-                                            </h4>
-                                            {item.description && (
-                                              <p className="cart-text-base mt-1 text-sm">
-                                                {item.description}
-                                              </p>
-                                            )}
-                                          </div>
-                                          <button
-                                            onClick={() => removeItem(item.id)}
-                                            className="mt-2 self-start rounded-lg p-2 sm:mt-0 sm:self-auto"
-                                          >
-                                            <Trash2 className="text-muted-foreground hover:text-danger h-5 w-5" />
-                                          </button>
-                                        </div>
-                                        <div className="mt-4 flex flex-row items-start justify-between gap-2 sm:items-center sm:gap-0">
-                                          <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
-                                            {item.discountPercentage && (
-                                              <div className="flex items-center gap-2">
-                                                <span className="bg-danger-foreground text-danger rounded px-2 py-1 text-sm font-medium">
-                                                  {item.discountPercentage}%
-                                                </span>
-                                                <span className="cart-text-base text-lg line-through">
-                                                  Tk {item.originalPrice.toLocaleString("en-BD")}
-                                                </span>
-                                              </div>
-                                            )}
-                                            <div className="text-sm font-bold lg:text-lg">
-                                              Tk {item.finalPrice.toLocaleString("en-BD")}
-                                            </div>
-                                          </div>
-                                          <div className="cart-border-sec mt-2 flex items-center rounded-lg border sm:mt-0">
-                                            <button
-                                              onClick={() => updateQuantity(item.id, false)}
-                                              className="cursor-pointer px-3 py-1"
-                                            >
-                                              -
-                                            </button>
-                                            <span className="px-4 py-1 text-sm lg:text-lg">
-                                              {item.quantity}
-                                            </span>
-                                            <button
-                                              onClick={() => updateQuantity(item.id, true)}
-                                              className="cursor-pointer px-3 py-1"
-                                            >
-                                              +
-                                            </button>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            </AccordionContent>
-                          </AccordionItem>
-                        </Accordion>
-                      </div>
-                    ))}
-                  </div>
+                  <CartItems
+                    cartItems={cartItems}
+                    isLoading={isCartLoading}
+                    updatingItems={updatingItems}
+                    getQty={getQty}
+                    onUpdateQuantity={updateQuantity}
+                    onSetQuantity={setQuantity}
+                    onRemoveItem={removeItem}
+                  />
                 )}
 
-                {/* ─────────── INFO STEP — only location ─────────── */}
+                {/* ─────────── INFO STEP ─────────── */}
                 {activeStep === "info" && (
-                  <div className="bg-card-primary rounded-lg p-4 shadow-sm lg:p-8">
-                    <h2 className="mb-6 text-2xl font-bold">Delivery Address</h2>
-
-                    <ShippingInfo onLocationChange={handleLocationChange} />
+                  <div className="space-y-3">
+                    <div className="bg-card-primary rounded-lg p-4 shadow-sm lg:p-8">
+                      <h2 className="mb-6 text-2xl font-bold">Delivery Address</h2>
+                      <AddressInfo onLocationChange={handleLocationChange} />
+                    </div>
+                    <div className="bg-card-primary rounded-lg p-4 shadow-sm lg:p-6">
+                      <h3 className="mb-3 text-sm font-semibold lg:text-base">Order Note (optional)</h3>
+                      <textarea
+                        value={orderNote}
+                        onChange={(e) => setOrderNote(e.target.value)}
+                        placeholder="Any special instructions for your order..."
+                        rows={3}
+                        className="border-border bg-card-primary w-full resize-none rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-button-primary"
+                      />
+                    </div>
                   </div>
                 )}
 
@@ -414,252 +400,39 @@ const CheckoutPage = () => {
                 )}
               </div>
             </div>
-
-            {/* Security Badge */}
-            <div className="bg-card-primary flex items-center justify-center space-x-4 rounded-xl p-4 shadow">
-              <Shield size={24} />
-              <span className="text-muted-foreground text-center text-sm font-medium sm:text-base">
-                Secure Checkout • 256-bit SSL Encryption • Your information is safe
-              </span>
-            </div>
           </div>
 
-          {/* ─────────── Right Column - Order Summary ─────────── */}
-          <div className={`mt-3 lg:mt-0 lg:w-4/12 ${activeStep === "payment" ? "hidden" : ""}`}>
-            <div>
-              <div className="bg-primary mb-3 rounded-xl p-4">
-                <div className="flex items-center text-white">
-                  <Truck className="mr-3 h-6 w-6" />
-                  <p className="font-semibold">Order Details</p>
-                </div>
-              </div>
-
-              {/* Promo Code */}
-              <div className="bg-card-primary mb-3 rounded-xl p-5 shadow-sm">
-                <div className="mb-4 flex items-center justify-between">
-                  <h3 className="text-sm font-semibold lg:text-lg">Discount Code</h3>
-                  <Tag className="text-button-secondary h-5 w-5" />
-                </div>
-                {!appliedPromoCode ? (
-                  <div>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={promoCode}
-                        onChange={(e) => {
-                          setPromoCode(e.target.value.toUpperCase());
-                          setPromoError("");
-                        }}
-                        placeholder="Enter promo code"
-                        className="cart-border-sec focus:ring-button-secondary flex-1 rounded-lg border px-3 py-2 text-sm focus:ring-2 focus:outline-none lg:text-lg"
-                      />
-                      <button
-                        onClick={applyPromoCode}
-                        className="bg-button-primary cursor-pointer rounded-lg px-4 py-2 font-medium text-white transition-opacity hover:opacity-90"
-                      >
-                        Apply
-                      </button>
-                    </div>
-                    {promoError && <p className="text-danger mt-2 text-sm">{promoError}</p>}
-                  </div>
-                ) : (
-                  <div className="bg-success border-success rounded-lg border p-3">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-success-foreground font-medium">{appliedPromoCode}</p>
-                        <p className="text-success-foreground text-sm">10% discount applied</p>
-                      </div>
-                      <button
-                        onClick={removePromoCode}
-                        className="text-danger hover:text-danger/80 cursor-pointer text-sm font-medium transition-colors"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Vouchers */}
-              <div className="bg-card-primary mb-3 rounded-xl p-5 shadow-sm">
-                <div className="mb-4 flex items-center justify-between">
-                  <h3 className="text-sm font-semibold lg:text-lg">Available Offers</h3>
-                  <Tag className="text-button-secondary h-5 w-5" />
-                </div>
-                <div className="space-y-3">
-                  <p className="text-sm font-medium lg:text-lg">
-                    There are {vouchers.length} Vouchers for you
-                  </p>
-                  {vouchers.map((voucher) => {
-                    const canApply = totals.totalPrice >= voucher.minPurchase;
-                    return (
-                      <div key={voucher.id}>
-                        {canApply ? (
-                          <div
-                            className={`mb-4 flex items-center gap-2 rounded-lg p-3 text-sm ${
-                              offerInfo.status === "active"
-                                ? "bg-success text-success-foreground border-success/30 border"
-                                : "bg-muted text-muted-foreground border-border border"
-                            }`}
-                          >
-                            {offerInfo.status === "active" ? (
-                              <Check size={16} />
-                            ) : (
-                              <Lock size={16} />
-                            )}
-                            <span>{offerInfo.message}</span>
-                          </div>
-                        ) : (
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <div className="bg-muted text-muted-foreground border-border mb-4 flex cursor-pointer items-center gap-2 rounded-lg border p-3 text-sm">
-                                <Lock size={16} />
-                                <span>{offerInfo.message}</span>
-                              </div>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Minimum Purchase Required</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  You need to spend at least Tk{" "}
-                                  {voucher.minPurchase.toLocaleString("en-BD")} to use this voucher.
-                                  Your current total is Tk{" "}
-                                  {totals.totalPrice.toLocaleString("en-BD")}. Please add Tk{" "}
-                                  {(voucher.minPurchase - totals.totalPrice).toLocaleString(
-                                    "en-BD"
-                                  )}{" "}
-                                  more to unlock.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Okay</AlertDialogCancel>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Order Summary */}
-              <div className="bg-card-primary rounded-xl p-5 shadow-sm">
-                <h3 className="mb-4 text-sm font-semibold lg:text-lg">Order Summary</h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">
-                      Total Price ({cartItems.filter((i) => i.selected).length} products)
-                    </span>
-                    <span className="text-sm font-medium lg:text-lg">
-                      Tk {totals.totalPrice.toLocaleString("en-BD")}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Shipping Fee</span>
-                    <div className="text-right">
-                      {totals.shippingFee === 0 && totals.fullShippingFee > 0 ? (
-                        <div className="flex items-center gap-2">
-                          <span className="text-muted-foreground text-sm line-through">
-                            Tk {totals.fullShippingFee.toLocaleString("en-BD")}
-                          </span>
-                          <span className="text-success-foreground font-medium">Free</span>
-                        </div>
-                      ) : totals.savedShippingFee > 0 ? (
-                        <div className="flex flex-col items-end">
-                          <div className="flex items-center gap-2">
-                            <span className="text-muted-foreground text-sm line-through">
-                              Tk {totals.fullShippingFee.toLocaleString("en-BD")}
-                            </span>
-                            <span className="text-sm font-medium lg:text-lg">
-                              Tk {totals.shippingFee.toLocaleString("en-BD")}
-                            </span>
-                          </div>
-                          <span className="text-success-foreground text-xs">
-                            Saved Tk {totals.savedShippingFee.toLocaleString("en-BD")}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="text-sm font-medium lg:text-lg">
-                          Tk {totals.shippingFee.toLocaleString("en-BD")}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  {appliedPromoCode && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Promo Code Discount</span>
-                      <span className="text-danger font-medium">
-                        - Tk {totals.promoDiscount.toLocaleString("en-BD")}
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Total Discount</span>
-                    <span className="text-danger font-medium">
-                      - Tk {totals.totalDiscount.toLocaleString("en-BD")}
-                    </span>
-                  </div>
-                  <div className="cart-border-primary mt-3 border-t pt-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-bold lg:text-lg">Total</span>
-                      <div className="text-right">
-                        <div className="cart-light-text text-2xl font-bold">
-                          Tk {totals.grandTotal.toLocaleString("en-BD")}
-                        </div>
-                        <p className="cart-text-base mt-1 text-sm">Total amount to be paid</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Action Button */}
-                  {activeStep === "info" && !formValid ? (
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <button
-                          type="button"
-                          className="border-border mt-6 flex w-full cursor-not-allowed items-center justify-center rounded-lg border bg-black/10 px-4 py-3 font-semibold opacity-50 shadow-sm"
-                        >
-                          <Lock className="mr-2" size={20} />
-                          Place Order
-                        </button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Complete the Address</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Please select Country, Division, District, Thana and fill in your Street
-                            before placing the order.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Okay</AlertDialogCancel>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  ) : (
-                    <button
-                      onClick={async (e) => {
-                        e.preventDefault();
-                        if (activeStep === "items") {
-                          setCompletedSteps((prev) => new Set(prev).add("items"));
-                          setActiveStep("info");
-                        } else if (activeStep === "info") {
-                          await handlePlaceOrder();
-                        }
-                      }}
-                      disabled={isOrdering}
-                      className="bg-button-primary mt-6 w-full transform cursor-pointer rounded-lg px-4 py-3 font-semibold text-white transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70"
-                    >
-                      {activeStep === "items" &&
-                        `Proceed to Checkout (${cartItems.filter((i) => i.selected).length})`}
-                      {activeStep === "info" && (isOrdering ? "Placing Order..." : "Place Order")}
-                    </button>
-                  )}
-                </div>
-              </div>
+          {/* ─────────── Right Column ─────────── */}
+          {activeStep !== "payment" && (
+            <div className="mt-3 lg:mt-0 lg:w-4/12">
+              <OrderSummary
+                activeStep={activeStep}
+                formValid={formValid}
+                isOrdering={isOrdering}
+                cartItems={cartItems}
+                getQty={getQty}
+                totals={totals}
+                promoCode={promoCode}
+                appliedPromoCode={appliedPromoCode}
+                promoError={promoError}
+                isValidatingCoupon={isValidatingCoupon}
+                couponDiscountLabel={getCouponDiscountLabel()}
+                couponPartial={
+                  !!couponValidation && !couponValidation.appliesToAllRequestedVariants
+                }
+                onPromoCodeChange={(code) => {
+                  setPromoCode(code);
+                  setPromoError("");
+                }}
+                onApplyPromoCode={applyPromoCode}
+                onRemovePromoCode={removePromoCode}
+                shippingMethods={shippingMethods}
+                selectedShippingMethodId={selectedShippingMethodId}
+                onSelectShippingMethod={setSelectedShippingMethodId}
+                onAction={handleAction}
+              />
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

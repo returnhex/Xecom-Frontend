@@ -13,14 +13,14 @@ import { TUserAddress } from "@/redux/features/user/dto/user.dto";
 export type TOrderAddressPayload =
   | { addressId: string; thanaId?: never; street?: never; postalCode?: never; isDefault?: never }
   | {
-      addressId?: never;
-      thanaId?: string;
-      street?: string;
-      postalCode?: string;
-      isDefault?: boolean;
-    };
+    addressId?: never;
+    thanaId?: string;
+    street?: string;
+    postalCode?: string;
+    isDefault?: boolean;
+  };
 
-interface ShippingInfoProps {
+interface AddressInfoProps {
   onLocationChange: (data: TOrderAddressPayload) => void;
 }
 
@@ -29,7 +29,7 @@ const toArray = (val: SelectOption | SelectOption[] | null): SelectOption[] => {
   return Array.isArray(val) ? val : [val];
 };
 
-const ShippingInfo = ({ onLocationChange }: ShippingInfoProps) => {
+const AddressInfo = ({ onLocationChange }: AddressInfoProps) => {
   const { data: addressesData } = useGetUserAddressesQuery(undefined);
   const addresses: TUserAddress[] = addressesData?.data ?? [];
 
@@ -48,8 +48,16 @@ const ShippingInfo = ({ onLocationChange }: ShippingInfoProps) => {
   const [isDefault, setIsDefault] = useState(false);
 
   const initialized = useRef(false);
+  const filling = useRef(false);
+
+  const markManual = () => {
+    if (filling.current) return;
+    setActiveThanaId(null);
+    setActiveAddressId(null);
+  };
 
   const fillFromAddress = (addr: TUserAddress) => {
+    filling.current = true;
     setSelectedCountry([{ value: addr.countryId, label: addr.countryName }]);
     setSelectedDivision([{ value: addr.divisionId, label: addr.divisionName }]);
     setSelectedDistrict([{ value: addr.districtId, label: addr.districtName }]);
@@ -59,6 +67,9 @@ const ShippingInfo = ({ onLocationChange }: ShippingInfoProps) => {
     setActiveThanaId(addr.thanaId);
     setActiveAddressId(addr.id ?? null);
     setCascadeKey((k) => k + 1);
+    // Reset after the current render cycle finishes so any onChange
+    // calls triggered by CustomSelect remounting are still suppressed.
+    setTimeout(() => { filling.current = false; }, 0);
   };
 
   // Pre-fill from default address once on load
@@ -68,11 +79,6 @@ const ShippingInfo = ({ onLocationChange }: ShippingInfoProps) => {
     const def = addresses.find((a) => a.isDefault);
     if (def) fillFromAddress(def);
   }, [addresses]);
-
-  const markManual = () => {
-    setActiveThanaId(null);
-    setActiveAddressId(null);
-  };
 
   // Notify parent on any change
   useEffect(() => {
@@ -162,9 +168,9 @@ const ShippingInfo = ({ onLocationChange }: ShippingInfoProps) => {
             extraParams={
               selectedDivision[0]?.value
                 ? {
-                    countryId: selectedCountry[0]?.value,
-                    divisionId: selectedDivision[0].value,
-                  }
+                  countryId: selectedCountry[0]?.value,
+                  divisionId: selectedDivision[0].value,
+                }
                 : {}
             }
             mapToOption={(item) => ({ value: String(item.id), label: item.name })}
@@ -190,10 +196,10 @@ const ShippingInfo = ({ onLocationChange }: ShippingInfoProps) => {
             extraParams={
               selectedDistrict[0]?.value
                 ? {
-                    countryId: selectedCountry[0]?.value,
-                    divisionId: selectedDivision[0]?.value,
-                    districtId: selectedDistrict[0].value,
-                  }
+                  countryId: selectedCountry[0]?.value,
+                  divisionId: selectedDivision[0]?.value,
+                  districtId: selectedDistrict[0].value,
+                }
                 : {}
             }
             mapToOption={(item) => ({ value: String(item.id), label: item.name })}
@@ -286,4 +292,4 @@ const ShippingInfo = ({ onLocationChange }: ShippingInfoProps) => {
   );
 };
 
-export default ShippingInfo;
+export default AddressInfo;
