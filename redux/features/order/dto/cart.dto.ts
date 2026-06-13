@@ -21,7 +21,7 @@ export type CartMergeConflict = {
   variantId: string;
   requestedQuantity: number;
   finalQuantity: number;
-  reason: 'OUT_OF_STOCK' | 'INSUFFICIENT_STOCK' | 'VARIANT_NOT_FOUND';
+  reason: "OUT_OF_STOCK" | "INSUFFICIENT_STOCK" | "VARIANT_NOT_FOUND";
   message: string;
 };
 
