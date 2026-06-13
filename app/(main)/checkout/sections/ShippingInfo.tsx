@@ -12,7 +12,13 @@ import { TUserAddress } from "@/redux/features/user/dto/user.dto";
 
 export type TOrderAddressPayload =
   | { addressId: string; thanaId?: never; street?: never; postalCode?: never; isDefault?: never }
-  | { addressId?: never; thanaId?: string; street?: string; postalCode?: string; isDefault?: boolean };
+  | {
+      addressId?: never;
+      thanaId?: string;
+      street?: string;
+      postalCode?: string;
+      isDefault?: boolean;
+    };
 
 interface ShippingInfoProps {
   onLocationChange: (data: TOrderAddressPayload) => void;
@@ -27,6 +33,9 @@ const ShippingInfo = ({ onLocationChange }: ShippingInfoProps) => {
   const { data: addressesData } = useGetUserAddressesQuery(undefined);
   const addresses: TUserAddress[] = addressesData?.data ?? [];
 
+  // thanaId is always present — used to identify which address is active in the list
+  const [activeThanaId, setActiveThanaId] = useState<string | null>(null);
+  // id may be undefined if the backend doesn't return it — used only for the order payload
   const [activeAddressId, setActiveAddressId] = useState<string | null>(null);
   const [cascadeKey, setCascadeKey] = useState(0);
 
@@ -47,7 +56,8 @@ const ShippingInfo = ({ onLocationChange }: ShippingInfoProps) => {
     setSelectedThana([{ value: addr.thanaId, label: addr.thanaName }]);
     setStreet(addr.street);
     setPostalCode(String(addr.postalCode ?? ""));
-    setActiveAddressId(addr.id);
+    setActiveThanaId(addr.thanaId);
+    setActiveAddressId(addr.id ?? null);
     setCascadeKey((k) => k + 1);
   };
 
@@ -59,7 +69,10 @@ const ShippingInfo = ({ onLocationChange }: ShippingInfoProps) => {
     if (def) fillFromAddress(def);
   }, [addresses]);
 
-  const markManual = () => setActiveAddressId(null);
+  const markManual = () => {
+    setActiveThanaId(null);
+    setActiveAddressId(null);
+  };
 
   // Notify parent on any change
   useEffect(() => {
@@ -73,16 +86,24 @@ const ShippingInfo = ({ onLocationChange }: ShippingInfoProps) => {
         isDefault: isDefault || undefined,
       });
     }
-  }, [activeAddressId, selectedThana, street, postalCode, isDefault]);
+  }, [activeAddressId, activeThanaId, selectedThana, street, postalCode, isDefault]);
 
-  const otherAddresses = addresses.filter((a) => a.id !== activeAddressId);
+  const activeAddress = addresses.find((a) => a.thanaId === activeThanaId);
+
+  // Exclude whichever address is currently shown in the form fields.
+  // Before the init effect fires (activeThanaId still null), fall back to
+  // excluding the default so it never flashes into the list.
+  const otherAddresses = addresses.filter((a) => {
+    if (activeThanaId) return a.thanaId !== activeThanaId;
+    return !a.isDefault;
+  });
 
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-foreground text-xl font-semibold tracking-tight">Delivery Address</h2>
         <p className="text-muted-foreground mt-1 text-sm">
-          {activeAddressId ? "Using your saved address" : "Enter a delivery address"}
+          {activeThanaId ? "Using your saved address" : "Enter a delivery address"}
         </p>
       </div>
 
@@ -116,9 +137,7 @@ const ShippingInfo = ({ onLocationChange }: ShippingInfoProps) => {
             key={`division-${cascadeKey}-${selectedCountry[0]?.value ?? ""}`}
             endpoint={`${API_URL}/division`}
             fields={["id", "name"]}
-            extraParams={
-              selectedCountry[0]?.value ? { countryId: selectedCountry[0].value } : {}
-            }
+            extraParams={selectedCountry[0]?.value ? { countryId: selectedCountry[0].value } : {}}
             mapToOption={(item) => ({ value: String(item.id), label: item.name })}
             value={selectedDivision}
             onChange={(vals) => {
@@ -157,9 +176,7 @@ const ShippingInfo = ({ onLocationChange }: ShippingInfoProps) => {
             }}
             searchable
             paginated
-            placeholder={
-              selectedDivision[0]?.value ? "Select district" : "Select division first"
-            }
+            placeholder={selectedDivision[0]?.value ? "Select district" : "Select division first"}
           />
         </div>
 
@@ -187,9 +204,7 @@ const ShippingInfo = ({ onLocationChange }: ShippingInfoProps) => {
             }}
             searchable
             paginated
-            placeholder={
-              selectedDistrict[0]?.value ? "Select area" : "Select district first"
-            }
+            placeholder={selectedDistrict[0]?.value ? "Select area" : "Select district first"}
           />
         </div>
 
@@ -222,14 +237,10 @@ const ShippingInfo = ({ onLocationChange }: ShippingInfoProps) => {
         </div>
       </div>
 
-      {/* Save as default — only shown when entering a new address */}
-      {!activeAddressId && (
+      {/* Save as default — hidden when the active saved address is already default */}
+      {!activeAddress?.isDefault && (
         <div className="flex items-center gap-2">
-          <Checkbox
-            id="isDefault"
-            checked={isDefault}
-            onCheckedChange={(c) => setIsDefault(!!c)}
-          />
+          <Checkbox id="isDefault" checked={isDefault} onCheckedChange={(c) => setIsDefault(!!c)} />
           <label
             htmlFor="isDefault"
             className="text-foreground cursor-pointer text-xs font-medium select-none"
@@ -241,22 +252,31 @@ const ShippingInfo = ({ onLocationChange }: ShippingInfoProps) => {
 
       {/* Other saved addresses */}
       {otherAddresses.length > 0 && (
-        <div className="space-y-2 pt-2">
+        <div className="space-y-3 pt-2">
           <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">
             Change address to
           </p>
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {otherAddresses.map((addr) => (
               <button
                 key={addr.id}
                 type="button"
                 onClick={() => fillFromAddress(addr)}
-                className="border-border bg-card-primary hover:border-button-primary flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs transition-all hover:shadow-sm"
+                className="border-border bg-card-primary hover:border-button-primary flex cursor-pointer items-start gap-2 rounded-xl border p-4 text-left transition-all hover:shadow-sm"
               >
-                <MapPin size={11} className="text-muted-foreground shrink-0" />
-                <span>
-                  {addr.thanaName}, {addr.districtName}
-                </span>
+                <MapPin size={13} className="text-muted-foreground mt-0.5 shrink-0" />
+                <div className="space-y-0.5">
+                  <p className="text-foreground text-xs font-semibold">
+                    {addr.thanaName}, {addr.districtName}
+                  </p>
+                  <p className="text-muted-foreground text-xs">
+                    {addr.divisionName}, {addr.countryName}
+                  </p>
+                  <p className="text-muted-foreground text-xs">{addr.street}</p>
+                  {addr.postalCode ? (
+                    <p className="text-muted-foreground text-xs">Postal: {addr.postalCode}</p>
+                  ) : null}
+                </div>
               </button>
             ))}
           </div>

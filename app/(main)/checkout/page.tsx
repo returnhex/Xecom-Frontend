@@ -131,11 +131,7 @@ const CheckoutPage = () => {
 
   const handleLocationChange = (data: TOrderAddressPayload) => {
     setOrderAddress(data);
-    setFormValid(
-      "addressId" in data
-        ? !!data.addressId
-        : !!(data.thanaId && data.street)
-    );
+    setFormValid("addressId" in data ? !!data.addressId : !!(data.thanaId && data.street));
   };
   const calculateTotals = () => {
     const selectedItems = cartItems.filter((item) => item.selected);
