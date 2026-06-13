@@ -1,9 +1,7 @@
 import type { NextAuthOptions } from "next-auth";
 
-import { useGoogleLoginMutation } from "@/redux/features/auth/auth.api";
-
 import GoogleProvider from "next-auth/providers/google";
-import FacebookProvider from "next-auth/providers/facebook";
+import { API_URL } from "@/redux/api/baseApi";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -11,19 +9,14 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
-
-    FacebookProvider({
-      clientId: process.env.FACEBOOK_CLIENT_ID!,
-      clientSecret: process.env.FACEBOOK_CLIENT_SECRET!,
-    }),
   ],
   secret: process.env.NEXTAUTH_SECRET,
 
   callbacks: {
-    async signIn({ user, account, profile }) {
-      if (account?.provider === "google" || account?.provider === "facebook") {
+    async signIn({ user, account }) {
+      if (account?.provider === "google") {
         try {
-          const response = await fetch(`${process.env.API_URL}/auth/google-login`, {
+          const response = await fetch(`${API_URL}/auth/google-login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
