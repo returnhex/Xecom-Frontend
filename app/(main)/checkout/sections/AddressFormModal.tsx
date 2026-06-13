@@ -87,7 +87,7 @@ const AddressFormModal = ({ open, onClose, onSubmit, initial }: AddressFormModal
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Add New Address</DialogTitle>
+          <DialogTitle>{initial ? "Edit Address" : "Add New Address"}</DialogTitle>
         </DialogHeader>
 
         <div className="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">

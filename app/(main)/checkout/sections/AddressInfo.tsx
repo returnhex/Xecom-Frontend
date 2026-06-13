@@ -24,32 +24,44 @@ const AddressInfo = ({ onLocationChange }: AddressInfoProps) => {
   const { data: addressesData, isLoading } = useGetUserAddressesQuery(undefined);
   const addresses: TUserAddress[] = addressesData?.data ?? [];
 
-  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  // The getUserAddresses response has no stable `id`, so saved addresses are tracked
+  // by their index in the list. selectedIndex holds ONLY the user's explicit pick —
+  // null means "not chosen yet".
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [newAddressData, setNewAddressData] = useState<TNewAddressData | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalInitial, setModalInitial] = useState<TNewAddressData | null>(null);
-  const initialized = useRef(false);
+  const onLocationChangeRef = useRef(onLocationChange);
+  onLocationChangeRef.current = onLocationChange;
 
-  // Auto-select the default address on first load
+  // The active saved address: the user's pick, falling back to the default (or first).
+  // Derived — never stored — so a click can never be reverted by an effect.
+  let defaultIndex: number | null = null;
+  if (addresses.length) {
+    const found = addresses.findIndex((a) => a.isDefault);
+    defaultIndex = found >= 0 ? found : 0;
+  }
+  const activeIndex = newAddressData ? null : (selectedIndex ?? defaultIndex);
+  const selectedAddress = activeIndex != null ? (addresses[activeIndex] ?? null) : null;
+
+  // Notify the parent whenever the active saved address changes (also fires for the
+  // initial default). The new-address path notifies separately in handleModalSubmit.
+  // No `id` is available, so we send the address detail the order API also accepts.
   useEffect(() => {
-    if (initialized.current || !addresses.length) return;
-    initialized.current = true;
-    const def = addresses.find((a) => a.isDefault);
-    if (def) {
-      setSelectedAddressId(def.id);
-      onLocationChange({ addressId: def.id });
-    }
-  }, [addresses]);
+    if (newAddressData || activeIndex == null) return;
+    const addr = addresses[activeIndex];
+    if (!addr) return;
+    onLocationChangeRef.current({ addressId: addr.addressId });
+  }, [activeIndex, newAddressData, addresses]);
 
-  const selectSavedAddress = (addr: TUserAddress) => {
-    setSelectedAddressId(addr.id);
+  const selectSavedAddress = (index: number) => {
     setNewAddressData(null);
-    onLocationChange({ addressId: addr.id });
+    setSelectedIndex(index);
   };
 
   const handleModalSubmit = (data: TNewAddressData) => {
     setNewAddressData(data);
-    setSelectedAddressId(null);
+    setSelectedIndex(null);
     setModalOpen(false);
     onLocationChange({
       thanaId: data.thanaId,
@@ -77,13 +89,12 @@ const AddressInfo = ({ onLocationChange }: AddressInfoProps) => {
     );
   }
 
-  const selectedAddress = addresses.find((a) => a.id === selectedAddressId) ?? null;
   const hasSelected = !!newAddressData || !!selectedAddress;
 
-  // Addresses not currently shown in the selected card
-  const otherAddresses = newAddressData
-    ? addresses
-    : addresses.filter((a) => a.id !== selectedAddressId);
+  // Addresses not currently shown in the selected card (keep original index for selection)
+  const otherAddresses = addresses
+    .map((addr, index) => ({ addr, index }))
+    .filter(({ index }) => newAddressData != null || index !== activeIndex);
 
   return (
     <div className="space-y-5">
@@ -174,11 +185,11 @@ const AddressInfo = ({ onLocationChange }: AddressInfoProps) => {
                 </p>
               )}
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {otherAddresses.map((addr) => (
+                {otherAddresses.map(({ addr, index }) => (
                   <button
-                    key={addr.id}
+                    key={index}
                     type="button"
-                    onClick={() => selectSavedAddress(addr)}
+                    onClick={() => selectSavedAddress(index)}
                     className="border-border bg-card-primary hover:border-button-primary/60 flex cursor-pointer items-start gap-2 rounded-xl border p-3 text-left transition-all hover:shadow-sm"
                   >
                     <MapPin size={13} className="text-muted-foreground mt-0.5 shrink-0" />

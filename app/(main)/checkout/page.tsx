@@ -24,6 +24,7 @@ import { CouponType } from "@/constants/enum";
 import { TShippingMethod } from "@/types/order.type";
 import { useAppSelector } from "@/redux/hooks";
 import { selectCurrentUser } from "@/redux/features/auth/authSlice";
+import { Button } from "@/components/ui/button";
 
 const CheckoutPage = () => {
   const user = useAppSelector(selectCurrentUser);
@@ -377,16 +378,16 @@ const CheckoutPage = () => {
                       </div>
                       <div className="mt-6 flex justify-center gap-4">
                         <Link href="/track-order">
-                          <button className="bg-success text-success-foreground flex cursor-pointer items-center gap-2 rounded-lg px-5 py-2 transition">
+                          <Button >
                             <Truck size={18} />
                             <span>Track Order</span>
-                          </button>
+                          </Button>
                         </Link>
                         <Link href="/">
-                          <button className="border-success text-success-foreground flex cursor-pointer items-center gap-2 rounded-lg border px-5 py-2 transition">
+                          <Button variant={"secondary"}>
                             <ShoppingCart size={18} />
                             <span>Continue Shopping</span>
-                          </button>
+                          </Button>
                         </Link>
                       </div>
                     </div>
