@@ -335,8 +335,8 @@ const CheckoutPage = () => {
                 {/* ─────────── INFO STEP ─────────── */}
                 {activeStep === "info" && (
                   <div className="space-y-3">
-                    <div className="bg-card-primary rounded-lg p-4 shadow-sm lg:p-8">
-                      <h2 className="mb-6 text-2xl font-bold">Delivery Address</h2>
+                    <div className="bg-card-primary rounded-lg p-4 shadow-sm lg:p-6">
+                      <h2 className="mb-4 text-xl font-bold">Delivery Address</h2>
                       <AddressInfo onLocationChange={handleLocationChange} />
                     </div>
                     <div className="bg-card-primary rounded-lg p-4 shadow-sm lg:p-6">
