@@ -1,10 +1,7 @@
 import { TQueryParam, TResponseRedux } from "@/types";
 import { baseApi } from "@/redux/api/baseApi";
 import { TShippingMethod } from "@/types/order.type";
-import {
-  TCreateShippingMethodDto,
-  TUpdateShippingMethodDto,
-} from "./dto/shipping-method.dto";
+import { TCreateShippingMethodDto, TUpdateShippingMethodDto } from "./dto/shipping-method.dto";
 
 const shippingMethodApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
