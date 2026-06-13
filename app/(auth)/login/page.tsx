@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -16,8 +16,6 @@ import { toast } from "sonner";
 import { TUser } from "@/redux/features/auth/authSlice";
 import { UserRole } from "@/redux/features/auth/dto/auth.dto";
 
-import { signIn, useSession } from "next-auth/react";
-
 // Define form types
 interface LoginFormData {
   email: string;
@@ -30,7 +28,6 @@ interface ForgotPasswordFormData {
 
 const Login = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { data: session, status } = useSession();
   const router = useRouter();
   const dispatch = useAppDispatch();
   const [login, { isLoading }] = useLoginMutation();
@@ -65,30 +62,6 @@ const Login = () => {
     setIsModalOpen(false);
     resetForgot();
   };
-
-  useEffect(() => {
-    if (status === "authenticated" && (session as any)?.backendToken) {
-      const backendToken = (session as any).backendToken;
-
-      try {
-        const decodedUser = jwtDecode<TUser>(backendToken);
-        dispatch(setUser({ user: decodedUser, token: backendToken }));
-        toast.success("Logged in successfully");
-
-        if (
-          decodedUser.role === UserRole.SUPER_ADMIN ||
-          decodedUser.role === UserRole.ADMIN ||
-          decodedUser.role === UserRole.STAFF
-        ) {
-          router.push("/admin");
-        } else {
-          router.push("/");
-        }
-      } catch (error) {
-        toast.error("Login failed. Please try again.");
-      }
-    }
-  }, [session, status]);
 
   const onSubmit = async (data: LoginFormData) => {
     try {
@@ -244,7 +217,7 @@ const Login = () => {
 
               <div className="mt-4 flex flex-col justify-center space-y-3">
                 <button
-                  onClick={() => signIn("google")}
+                  onClick={handleGoogleSignIn}
                   className="flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl bg-white py-3 font-medium shadow-sm transition-all dark:bg-white/10"
                 >
                   <svg
