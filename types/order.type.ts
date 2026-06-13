@@ -136,3 +136,16 @@ export type TReturnItem = {
   reason?: string | null;
   condition: ItemCondition;
 };
+
+export type TShippingMethod = {
+  id: string;
+  tenantId?: string | null;
+  code: string;
+  name: string;
+  description?: string | null;
+  cost?: string | null;
+  estimatedDays?: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+};

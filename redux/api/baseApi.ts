@@ -99,6 +99,7 @@ export const baseApi = createApi({
     "cart",
     "order",
     "coupon",
+    "shippingMethod",
     "notification",
     "setting",
     "tenant",
