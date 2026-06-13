@@ -683,7 +683,7 @@ const CheckoutPage = () => {
                       className="bg-button-primary mt-6 w-full transform cursor-pointer rounded-lg px-4 py-3 font-semibold text-white transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70"
                     >
                       {activeStep === "items" &&
-                        `Proceed to Address (${cartItems.filter((i) => i.selected).length})`}
+                        `Proceed to Checkout (${cartItems.filter((i) => i.selected).length})`}
                       {activeStep === "info" && (isOrdering ? "Placing Order..." : "Place Order")}
                     </button>
                   )}

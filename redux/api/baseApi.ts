@@ -66,6 +66,9 @@ const baseQueryWithRefreshToken: BaseQueryFn<FetchArgs, BaseQueryApi, Definition
       result = await baseQuery(args, api, extraOptions);
     } else {
       api.dispatch(logout());
+      if (res.status === 401) {
+        window.location.href = "/login";
+      }
     }
   }
 
