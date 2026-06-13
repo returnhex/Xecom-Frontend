@@ -17,7 +17,6 @@ import Image from "next/image";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { CartData } from "@/data/cart";
-import { checkoutSchema, type CheckoutFormData } from "@/lib/shepping.Schema";
 import {
   Accordion,
   AccordionContent,
@@ -36,7 +35,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import Link from "next/link";
-import ShippingInfo from "./sections/ShippingInfo";
+import ShippingInfo, { TOrderAddressPayload } from "./sections/ShippingInfo";
 import { useCreateOrderMutation } from "@/redux/features/order/order.api";
 
 interface Voucher {
@@ -65,11 +64,6 @@ interface CartItem {
 
 const CheckoutPage = () => {
   const [activeStep, setActiveStep] = useState<"items" | "info" | "payment">("items");
-
-  const [touched, setTouched] = useState({
-    thanaId: false,
-    street: false,
-  });
 
   const INSIDE_DHAKA_FEE = 100;
   const OUTSIDE_DHAKA_FEE = 150;
@@ -132,35 +126,16 @@ const CheckoutPage = () => {
     setCartItems(cartItems.filter((item) => item.id !== id));
   };
 
-  // ── Form state — only location fields ────────────────────────────────────
-  const [formData, setFormData] = useState<CheckoutFormData>({
-    thanaId: "",
-    street: "",
-    postalCode: "",
-  });
-
-  const [formErrors, setFormErrors] = useState<Partial<Record<keyof CheckoutFormData, string>>>({});
-
+  const [orderAddress, setOrderAddress] = useState<TOrderAddressPayload>({});
   const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
 
-  // Called by ShippingInfo whenever any location field changes
-  const handleLocationChange = (data: CheckoutFormData) => {
-    setFormData(data);
-
-    const validation = checkoutSchema.safeParse(data);
-    setFormValid(validation.success);
-
-    const newErrors: Partial<Record<keyof CheckoutFormData, string>> = {};
-
-    if (touched.thanaId && !data.thanaId) {
-      newErrors.thanaId = "Please select a Thana";
-    }
-
-    if (touched.street && (!data.street || data.street.length < 3)) {
-      newErrors.street = "Street / Area is required";
-    }
-
-    setFormErrors(newErrors);
+  const handleLocationChange = (data: TOrderAddressPayload) => {
+    setOrderAddress(data);
+    setFormValid(
+      "addressId" in data
+        ? !!data.addressId
+        : !!(data.thanaId && data.street)
+    );
   };
   const calculateTotals = () => {
     const selectedItems = cartItems.filter((item) => item.selected);
@@ -220,20 +195,24 @@ const CheckoutPage = () => {
     if (!formValid) return;
 
     try {
-      await createOrder({
-        thanaId: formData.thanaId,
-        street: formData.street,
-        postalCode: formData.postalCode || undefined,
-        couponCode: appliedPromoCode || undefined,
-      }).unwrap();
+      const payload =
+        "addressId" in orderAddress && orderAddress.addressId
+          ? { addressId: orderAddress.addressId, couponCode: appliedPromoCode || undefined }
+          : {
+              thanaId: orderAddress.thanaId,
+              street: orderAddress.street,
+              postalCode: orderAddress.postalCode || undefined,
+              isDefault: orderAddress.isDefault,
+              couponCode: appliedPromoCode || undefined,
+            };
+
+      await createOrder(payload).unwrap();
 
       setCompletedSteps((prev) => new Set(prev).add("info"));
       setActiveStep("payment");
       toast.success("Place Order Successful!");
 
-      // Reset
-      setFormData({ thanaId: "", street: "", postalCode: "" });
-      setFormErrors({});
+      setOrderAddress({});
       setFormValid(false);
       setAppliedPromoCode("");
       setPromoCode("");
@@ -395,13 +374,7 @@ const CheckoutPage = () => {
                   <div className="bg-card-primary rounded-lg p-4 shadow-sm lg:p-8">
                     <h2 className="mb-6 text-2xl font-bold">Delivery Address</h2>
 
-                    <ShippingInfo
-                      street={formData.street}
-                      postalCode={formData.postalCode}
-                      onLocationChange={handleLocationChange}
-                      errors={formErrors}
-                      setTouched={setTouched}
-                    />
+                    <ShippingInfo onLocationChange={handleLocationChange} />
                   </div>
                 )}
 

@@ -25,6 +25,7 @@ export type TAddOrUpdateUserAddressDto = {
 };
 
 export type TUserAddress = {
+  id: string;
   street: string;
   postalCode: number;
   isDefault: boolean;
@@ -32,4 +33,8 @@ export type TUserAddress = {
   districtId: string;
   divisionId: string;
   countryId: string;
+  thanaName: string;
+  districtName: string;
+  divisionName: string;
+  countryName: string;
 };
