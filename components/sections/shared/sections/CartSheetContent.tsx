@@ -96,7 +96,11 @@ export default function CartContent({
       if (user) {
         await updateCartQuantity({ id: item.id, data: { quantity: newQty } }).unwrap();
       } else {
-        await updateGuestCartQuantity({ guestToken, id: item.id, data: { quantity: newQty } }).unwrap();
+        await updateGuestCartQuantity({
+          guestToken,
+          id: item.id,
+          data: { quantity: newQty },
+        }).unwrap();
       }
     } catch {
       setLocalQuantity((prev) => ({ ...prev, [item.id]: current }));
@@ -125,7 +129,11 @@ export default function CartContent({
       if (user) {
         await updateCartQuantity({ id: item.id, data: { quantity: newQty } }).unwrap();
       } else {
-        await updateGuestCartQuantity({ guestToken, id: item.id, data: { quantity: newQty } }).unwrap();
+        await updateGuestCartQuantity({
+          guestToken,
+          id: item.id,
+          data: { quantity: newQty },
+        }).unwrap();
       }
     } catch {
       setLocalQuantity((prev) => ({ ...prev, [item.id]: current }));

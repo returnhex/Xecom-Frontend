@@ -138,11 +138,17 @@ export default function ProductDetails() {
           token = (tokenResult as any)?.guestToken ?? "";
           if (token) {
             localStorage.setItem("guestToken", token);
-            window.dispatchEvent(new StorageEvent("storage", { key: "guestToken", newValue: token }));
+            window.dispatchEvent(
+              new StorageEvent("storage", { key: "guestToken", newValue: token })
+            );
           }
         }
         if (token) {
-          await addToGuestCart({ variantId: selectedVariant.id, quantity, guestToken: token }).unwrap();
+          await addToGuestCart({
+            variantId: selectedVariant.id,
+            quantity,
+            guestToken: token,
+          }).unwrap();
         }
       }
       toast.success(`${product.name} added to cart!`);
