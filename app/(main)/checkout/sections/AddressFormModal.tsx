@@ -1,12 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -125,9 +120,7 @@ const AddressFormModal = ({ open, onClose, onSubmit, initial }: AddressFormModal
               key={`modal-division-${cascadeKey}-${selectedCountry[0]?.value ?? ""}`}
               endpoint={`${API_URL}/division`}
               fields={["id", "name"]}
-              extraParams={
-                selectedCountry[0]?.value ? { countryId: selectedCountry[0].value } : {}
-              }
+              extraParams={selectedCountry[0]?.value ? { countryId: selectedCountry[0].value } : {}}
               mapToOption={(item) => ({ value: String(item.id), label: item.name })}
               value={selectedDivision}
               onChange={(vals) => {
@@ -137,9 +130,7 @@ const AddressFormModal = ({ open, onClose, onSubmit, initial }: AddressFormModal
               }}
               searchable
               paginated
-              placeholder={
-                selectedCountry[0]?.value ? "Select division" : "Select country first"
-              }
+              placeholder={selectedCountry[0]?.value ? "Select division" : "Select country first"}
             />
           </div>
 
@@ -166,9 +157,7 @@ const AddressFormModal = ({ open, onClose, onSubmit, initial }: AddressFormModal
               }}
               searchable
               paginated
-              placeholder={
-                selectedDivision[0]?.value ? "Select district" : "Select division first"
-              }
+              placeholder={selectedDivision[0]?.value ? "Select district" : "Select division first"}
             />
           </div>
 
@@ -193,9 +182,7 @@ const AddressFormModal = ({ open, onClose, onSubmit, initial }: AddressFormModal
               onChange={(vals) => setSelectedThana(toArray(vals))}
               searchable
               paginated
-              placeholder={
-                selectedDistrict[0]?.value ? "Select area" : "Select district first"
-              }
+              placeholder={selectedDistrict[0]?.value ? "Select area" : "Select district first"}
             />
           </div>
 

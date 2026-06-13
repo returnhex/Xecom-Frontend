@@ -94,7 +94,7 @@ const AddressInfo = ({ onLocationChange }: AddressInfoProps) => {
           <button
             type="button"
             onClick={openAddNew}
-            className="border-button-primary text-button-primary flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-all hover:bg-button-primary/5"
+            className="border-button-primary text-button-primary hover:bg-button-primary/5 flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-all"
           >
             <Plus size={15} />
             Add Address
@@ -169,7 +169,7 @@ const AddressInfo = ({ onLocationChange }: AddressInfoProps) => {
           {otherAddresses.length > 0 && (
             <div className="space-y-3">
               {hasSelected && (
-                <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">
+                <p className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
                   Change address to —
                 </p>
               )}
