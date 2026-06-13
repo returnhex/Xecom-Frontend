@@ -32,8 +32,7 @@ const CartItems = ({
 }: CartItemsProps) => {
   const [inputValues, setInputValues] = useState<Record<string, string>>({});
 
-  const getInputValue = (item: CartItemApi) =>
-    inputValues[item.id] ?? String(getQty(item));
+  const getInputValue = (item: CartItemApi) => inputValues[item.id] ?? String(getQty(item));
 
   const handleInputChange = (item: CartItemApi, value: string) => {
     setInputValues((prev) => ({ ...prev, [item.id]: value }));
@@ -95,10 +94,7 @@ const CartItems = ({
   return (
     <div>
       {Object.entries(groupedItems).map(([store, items]) => (
-        <div
-          key={store}
-          className="bg-card-primary mb-3 overflow-hidden rounded-xl px-2 shadow-sm"
-        >
+        <div key={store} className="bg-card-primary mb-3 overflow-hidden rounded-xl px-2 shadow-sm">
           <Accordion type="single" collapsible defaultValue={store}>
             <AccordionItem value={store}>
               <AccordionTrigger>
@@ -192,7 +188,7 @@ const CartItems = ({
                                     if (e.key === "Enter") e.currentTarget.blur();
                                   }}
                                   disabled={isUpdating}
-                                  className={`border-border w-12 border-x bg-transparent py-1 text-center text-sm transition-opacity focus:outline-none lg:text-base [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${isUpdating ? "opacity-40" : "opacity-100"}`}
+                                  className={`border-border w-12 [appearance:textfield] border-x bg-transparent py-1 text-center text-sm transition-opacity focus:outline-none lg:text-base [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${isUpdating ? "opacity-40" : "opacity-100"}`}
                                 />
                                 <button
                                   onClick={() => onUpdateQuantity(item, true)}

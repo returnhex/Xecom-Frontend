@@ -200,9 +200,7 @@ const OrderSummary = ({
                     )}
                   </div>
                   <span className="text-sm font-semibold">
-                    {method.cost
-                      ? `Tk ${Number(method.cost).toLocaleString("en-BD")}`
-                      : "Free"}
+                    {method.cost ? `Tk ${Number(method.cost).toLocaleString("en-BD")}` : "Free"}
                   </span>
                 </div>
               </button>
@@ -216,9 +214,7 @@ const OrderSummary = ({
         <h3 className="mb-4 text-sm font-semibold lg:text-lg">Order Summary</h3>
         <div className="space-y-2">
           <div className="flex justify-between">
-            <span className="text-muted-foreground">
-              Total Price ({cartItems.length} products)
-            </span>
+            <span className="text-muted-foreground">Total Price ({cartItems.length} products)</span>
             <span className="text-sm font-medium lg:text-lg">
               Tk {totals.totalPrice.toLocaleString("en-BD")}
             </span>

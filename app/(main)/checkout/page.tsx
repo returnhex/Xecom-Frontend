@@ -1,14 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  ShoppingCart,
-  Truck,
-  Shield,
-  CreditCard,
-  ArrowRight,
-  MapPin,
-} from "lucide-react";
+import { ShoppingCart, Truck, Shield, CreditCard, ArrowRight, MapPin } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -89,8 +82,7 @@ const CheckoutPage = () => {
 
   const calculateTotals = () => {
     const totalPrice = cartItems.reduce(
-      (sum, item) =>
-        sum + Number(item.variant.discountPrice ?? item.variant.price) * getQty(item),
+      (sum, item) => sum + Number(item.variant.discountPrice ?? item.variant.price) * getQty(item),
       0
     );
     const shippingFee = selectedShippingMethod ? Number(selectedShippingMethod.cost ?? 0) : 0;
@@ -348,13 +340,15 @@ const CheckoutPage = () => {
                       <AddressInfo onLocationChange={handleLocationChange} />
                     </div>
                     <div className="bg-card-primary rounded-lg p-4 shadow-sm lg:p-6">
-                      <h3 className="mb-3 text-sm font-semibold lg:text-base">Order Note (optional)</h3>
+                      <h3 className="mb-3 text-sm font-semibold lg:text-base">
+                        Order Note (optional)
+                      </h3>
                       <textarea
                         value={orderNote}
                         onChange={(e) => setOrderNote(e.target.value)}
                         placeholder="Any special instructions for your order..."
                         rows={3}
-                        className="border-border bg-card-primary w-full resize-none rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-button-primary"
+                        className="border-border bg-card-primary focus:ring-button-primary w-full resize-none rounded-lg border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
                       />
                     </div>
                   </div>

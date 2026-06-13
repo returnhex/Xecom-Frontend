@@ -13,12 +13,12 @@ import { TUserAddress } from "@/redux/features/user/dto/user.dto";
 export type TOrderAddressPayload =
   | { addressId: string; thanaId?: never; street?: never; postalCode?: never; isDefault?: never }
   | {
-    addressId?: never;
-    thanaId?: string;
-    street?: string;
-    postalCode?: string;
-    isDefault?: boolean;
-  };
+      addressId?: never;
+      thanaId?: string;
+      street?: string;
+      postalCode?: string;
+      isDefault?: boolean;
+    };
 
 interface AddressInfoProps {
   onLocationChange: (data: TOrderAddressPayload) => void;
@@ -69,7 +69,9 @@ const AddressInfo = ({ onLocationChange }: AddressInfoProps) => {
     setCascadeKey((k) => k + 1);
     // Reset after the current render cycle finishes so any onChange
     // calls triggered by CustomSelect remounting are still suppressed.
-    setTimeout(() => { filling.current = false; }, 0);
+    setTimeout(() => {
+      filling.current = false;
+    }, 0);
   };
 
   // Pre-fill from default address once on load
@@ -168,9 +170,9 @@ const AddressInfo = ({ onLocationChange }: AddressInfoProps) => {
             extraParams={
               selectedDivision[0]?.value
                 ? {
-                  countryId: selectedCountry[0]?.value,
-                  divisionId: selectedDivision[0].value,
-                }
+                    countryId: selectedCountry[0]?.value,
+                    divisionId: selectedDivision[0].value,
+                  }
                 : {}
             }
             mapToOption={(item) => ({ value: String(item.id), label: item.name })}
@@ -196,10 +198,10 @@ const AddressInfo = ({ onLocationChange }: AddressInfoProps) => {
             extraParams={
               selectedDistrict[0]?.value
                 ? {
-                  countryId: selectedCountry[0]?.value,
-                  divisionId: selectedDivision[0]?.value,
-                  districtId: selectedDistrict[0].value,
-                }
+                    countryId: selectedCountry[0]?.value,
+                    divisionId: selectedDivision[0]?.value,
+                    districtId: selectedDistrict[0].value,
+                  }
                 : {}
             }
             mapToOption={(item) => ({ value: String(item.id), label: item.name })}
@@ -259,7 +261,7 @@ const AddressInfo = ({ onLocationChange }: AddressInfoProps) => {
       {/* Other saved addresses */}
       {otherAddresses.length > 0 && (
         <div className="space-y-3 pt-2">
-          <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">
+          <p className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
             Change address to
           </p>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">

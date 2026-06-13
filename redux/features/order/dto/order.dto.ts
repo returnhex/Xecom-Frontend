@@ -8,7 +8,7 @@ export type TCreateOrderDto = {
   isDefault?: boolean; // If no addressId, then these fields are required
   notes?: string;
   couponCode?: string;
-  shippingMethodId: string
+  shippingMethodId: string;
 };
 
 export type TUpdateOrderStatusDto = {
