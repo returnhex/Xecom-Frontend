@@ -92,14 +92,14 @@ export const adminRoutes: RouteGroup[] = [
       },
     ],
   },
-   {
+  {
     title: "Marketing",
     icon: ShoppingCart,
     routes: [
       {
         label: "Coupons",
         href: "/admin/marketing/coupon",
-      }
+      },
     ],
   },
   {
