@@ -378,7 +378,7 @@ const CheckoutPage = () => {
                       </div>
                       <div className="mt-6 flex justify-center gap-4">
                         <Link href="/track-order">
-                          <Button >
+                          <Button>
                             <Truck size={18} />
                             <span>Track Order</span>
                           </Button>
