@@ -4,6 +4,7 @@ import { useState } from "react";
 import {
   useDeleteCouponMutation,
   useGetAllCouponsQuery,
+  useSetCouponActiveMutation,
 } from "@/redux/features/marketing/coupon.api";
 
 import {
@@ -20,6 +21,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -62,11 +71,13 @@ const formatValue = (coupon: TCoupon) => {
 
 export default function CouponTable({ onEdit }: CouponTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
+  const [active, setActive] = useState<string>("");
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [couponToDelete, setCouponToDelete] = useState<TCoupon | null>(null);
 
   const [deleteCoupon, { isLoading: isDeleting }] = useDeleteCouponMutation();
+  const [setCouponActive, { isLoading: isChangingStatus }] = useSetCouponActiveMutation();
 
   const debouncedSearchTerm = useDebounce(searchTerm);
 
@@ -79,6 +90,10 @@ export default function CouponTable({ onEdit }: CouponTableProps) {
 
     if (debouncedSearchTerm) {
       params.push({ name: "searchTerm", value: debouncedSearchTerm });
+    }
+
+    if (active) {
+      params.push({ name: "active", value: active });
     }
 
     return params;
@@ -98,6 +113,21 @@ export default function CouponTable({ onEdit }: CouponTableProps) {
   const handleSortClick = (field: SortableFields) => {
     handleSort(field);
     resetPage();
+  };
+
+  const handleToggleStatus = async (coupon: TCoupon) => {
+    try {
+      await setCouponActive({
+        id: coupon.id,
+        data: { isActive: !coupon.isActive },
+      }).unwrap();
+
+      toast.success(`Coupon ${!coupon.isActive ? "activated" : "deactivated"}`);
+    } catch (error: any) {
+      const errorMessage =
+        error?.data?.message || error?.message || "Failed to update coupon status";
+      toast.error(errorMessage);
+    }
   };
 
   const handleDeleteClick = (coupon: TCoupon) => {
@@ -133,6 +163,23 @@ export default function CouponTable({ onEdit }: CouponTableProps) {
             className={`pl-9 ${searchTerm ? "border-primary bg-primary/5" : ""}`}
           />
         </div>
+
+        {/* Active Filter */}
+        <Select
+          value={active}
+          onValueChange={(value) => {
+            setActive(value);
+            resetPage();
+          }}
+        >
+          <SelectTrigger className={active ? "border-primary bg-primary/5" : ""}>
+            <SelectValue placeholder="Active" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="true">Active</SelectItem>
+            <SelectItem value="false">Inactive</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div
@@ -192,9 +239,17 @@ export default function CouponTable({ onEdit }: CouponTableProps) {
                       {coupon.usageLimit ? ` / ${coupon.usageLimit}` : ""}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={coupon.isActive ? "default" : "secondary"}>
-                        {coupon.isActive ? "Active" : "Inactive"}
-                      </Badge>
+                      <div className="flex items-center gap-x-2">
+                        <Badge variant={coupon.isActive ? "default" : "secondary"}>
+                          {coupon.isActive ? "Active" : "Inactive"}
+                        </Badge>
+
+                        <Switch
+                          checked={coupon.isActive}
+                          onCheckedChange={() => handleToggleStatus(coupon)}
+                          disabled={isChangingStatus}
+                        />
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex justify-end gap-2">
