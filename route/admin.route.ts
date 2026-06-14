@@ -64,6 +64,10 @@ export const adminRoutes: RouteGroup[] = [
         label: "Pending Orders",
         href: "/admin/orders/all-orders/pending",
       },
+      {
+        label: "Shipping Method",
+        href: "/admin/orders/shipping-method",
+      },
     ],
   },
   {
@@ -86,6 +90,16 @@ export const adminRoutes: RouteGroup[] = [
         label: "Add Staff",
         href: "/admin/users/add-staff",
       },
+    ],
+  },
+   {
+    title: "Marketing",
+    icon: ShoppingCart,
+    routes: [
+      {
+        label: "Coupons",
+        href: "/admin/marketing/coupon",
+      }
     ],
   },
   {
